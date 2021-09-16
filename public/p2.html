@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono:ital,wght@1,700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            background: #0b0b0b;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding-top: 170px;
+            align-items: center;
+        }
+
+        .heading {
+            font-family: Roboto;
+            font-size: 96px;
+            line-height: 112px;
+
+            text-shadow: 0px 4px 20px rgb(50 72 40 / 25%);
+
+            background: -webkit-linear-gradient(#4b6b3c, #26371e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 67px;
+        }
+
+        .terminal {
+            width: 100%;
+            height: 100%;
+            max-width: 828px;
+            max-height: 544px;
+            background: #121212;
+            box-shadow: 0px 0px 20px 20px rgb(128 128 128 / 3%);
+            border-radius: 20px;
+            padding: 36px 45px;
+            position: relative;
+            user-select: none;
+            overflow: auto;
+            overflow-x: hidden;
+        }
+
+        .prompt {
+            font-family: Roboto Mono;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 24px;
+
+            color: #d7d7d7;
+            margin-right: 20px;
+        }
+
+        .allowed-commands {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            max-width: 218px;
+            max-height: 203px;
+
+            background: #161616;
+            border-radius: 0px 21px 21px 21px;
+            top: 0;
+            right: 0;
+            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .allowed-commands span {
+            font-family: Roboto;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 21px;
+
+            color: #c9c9c9;
+
+            text-shadow: 0px 4px 13px rgb(0 0 0 / 9%);
+            margin-bottom: 13px;
+        }
+
+        .allowed-commands hr {
+            width: 100%;
+            height: 0px;
+
+            border: 0.6px solid rgb(102 102 102 / 14%);
+        }
+
+        .allowed-commands ul {
+            font-family: Roboto;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 18px;
+            line-height: 21px;
+            color: #afafaf;
+            list-style: none;
+            margin-top: 26px;
+        }
+
+        .input input {
+            background: transparent;
+            border: none;
+            outline: none;
+
+            font-family: Roboto Mono;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 24px;
+            width: 50%;
+
+            color: #e6deb9;
+        }
+
+        .input input::placeholder {
+            font-family: Roboto Mono;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 24px;
+
+            color: #e6deb9;
+        }
+
+        .output {
+            font-family: Roboto Mono;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 24px;
+            margin-top: 23px;
+
+            color: #d4bf88;
+        }
+
+        @media only screen and (max-height: 800px) {
+            body {
+                padding-top: 30px;
+            }
+
+            .heading {
+                font-size: 80px;
+            }
+
+            .terminal {
+                max-height: 400px;
+            }
+        }
+
+        li {
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        li:hover {
+            color: #949494;
+        }
+
+        .terminal::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .terminal::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .terminal::-webkit-scrollbar-thumb {
+            background-color: #2e2e2ee3;
+            border-radius: 20px;
+        }
+    </style>
+    <title>Commands</title>
+</head>
+
+<body>
+    <h1 class="heading">Commands</h1>
+    <div class="terminal">
+        <div class="input">
+            <span class="prompt">Enter command:</span>
+            <input type="text" placeholder="...">
+        </div>
+        <p class="output"></p>
+        <div class="allowed-commands">
+            <span>Allowed Commands</span>
+            <hr>
+            <ul>
+                <li>ls
+                <li>cat
+                <li>pwd
+            </ul>
+        </div>
+    </div>
+    <script>
+        const commandInput = document.querySelector('input');
+        const output = document.querySelector('.output');
+        const samples = document.querySelectorAll('li');
+
+        samples.forEach(sample =>
+            sample.addEventListener('click', e => {
+                sendCommand(e.target.innerText).then(r => (output.innerText = r));
+            })
+        );
+
+        commandInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && e.target.value.length) {
+                sendCommand(e.target.value).then(r => (output.innerText = r));
+                e.target.value = '';
+            }
+        });
+
+        const sendCommand = async command => {
+            try {
+                const r = await fetch('https://flacial.freedomains.dev/p2/commands', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        command
+                    })
+                });
+
+                const {
+                    output
+                } = await r.json();
+
+                return output;
+            } catch (err) {
+                console.log(err);
+                return null;
+            }
+        };
+    </script>
+</body>
+
+</html>

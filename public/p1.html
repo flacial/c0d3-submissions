@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #map {
+            height: 100%;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            padding: 30px;
+        }
+    </style>
+    <title>IP Geolocation</title>
+</head>
+
+<body>
+    <h1 class="countryName"></h1>
+    <div id="map"></div>
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB29pGpCzE_JGIEMLu1SGIqwoIbc0sHFHo&amp;callback=initMap">
+    </script>
+    <script>
+        const countryName = document.querySelector('.countryName')
+        let map;
+
+        async function initMap() {
+            const {
+                coordinates,
+                city
+            } = await getLocation()
+            countryName.innerText = `You're visiting from: ${city}`
+
+            map = new google.maps.Map(document.querySelector("#map"), {
+                center: coordinates,
+                zoom: 12,
+            });
+
+            new google.maps.Marker({
+                position: coordinates,
+                map,
+                title: "Your Location",
+            });
+        }
+    </script>
+</body>
+
+</html>
