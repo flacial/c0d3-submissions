@@ -85,9 +85,9 @@ describe("LruCache", () => {
         lru.addItem("Fresh", 1011)
         lru.getItem("Dog")
         lru.getItem("Monk")
-          
+
         expect(reduceMapKeys(lru.keys, 3)).toEqual({
-            "Fresh":0,
+            "Fresh": 0,
             "Dog": 1,
             "Monk": 2
         })

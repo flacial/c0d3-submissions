@@ -1,19 +1,16 @@
 import Jimp from 'jimp';
-import LRU_CACHE from '../utils/lru-cache.js';
+import LRU_Cache from '../utils/lru-cache.js';
 
 class MemesGen {
   constructor() {
-    this.memesCache = new LRU_CACHE(10);
+    this.memesCache = new LRU_Cache(10);
   }
 
   createMeme = async (text, src, blur, black) => {
     try {
       const font = await Jimp.loadFont(black ? Jimp.FONT_SANS_64_BLACK : Jimp.FONT_SANS_64_WHITE);
       const image = await Jimp.read(src || 'https://placeimg.com/640/480/any');
-      const {
-        height,
-        width,
-      } = image.bitmap;
+      const { height, width } = image.bitmap;
   
       if (blur) image.blur(blur);
       image.print(font, 0, 0, {
@@ -55,7 +52,6 @@ class MemesGen {
     
         return res.send(buffer);
       } catch (e) {
-          console.log(e)
         return res.status(500).send({
           message: 'Error. Make sure the src link is correct and try again after a while.',
         });

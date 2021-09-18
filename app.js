@@ -4,6 +4,7 @@ import session from 'express-session';
 import p1Router from './routes/p1.js';
 import p2Router from './routes/p2.js';
 import p3Router from './routes/p3.js';
+import p4Router from './routes/p4.js';
 
 const router = express();
 const dirname = path.resolve();
@@ -37,5 +38,6 @@ router.get('/', (req, res) => res.sendFile(filePath('main.html')));
 router.use('/p1', p1Router);
 router.use('/p2', p2Router);
 router.use('/p3', p3Router);
+router.use('/p4', p4Router)
 
 router.listen(process.env.PORT || 8124);
