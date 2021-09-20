@@ -230,7 +230,7 @@
 
         const sendCommand = async command => {
             try {
-                const r = await fetch('https://flacial.freedomains.dev/p2/commands', {
+                const r = await fetch('/p2/commands', {
                     method: 'POST',
                     headers: {
                         'content-type': 'application/json'
