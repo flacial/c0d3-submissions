@@ -1,48 +1,89 @@
-import { promises } from "fs";
+import fs, { promises } from "fs";
 import path from "path";
 
-const fs = promises
+const fsAsync = promises;
+const fsSync = fs;
 class AssetCreation {
-    static #UNLINK_DELAY = 300000 // 5 minutes * 60,000 ms = 300000 ms
-    static #FOLDER_ENTRY = './public/'
+    #UNLINK_DELAY;
+    #FOLDER_ENTRY;
 
-    static #normalizePath = (name) => path.normalize(this.#FOLDER_ENTRY + name)
-    static #isNameValid = (name) => ((name[0] + name[1] === './') && !name.includes('/', 2)) || !name.includes('/')
+    constructor(UNLINK_DELAY, FOLDER_ENTRY) {
+        this.#UNLINK_DELAY = UNLINK_DELAY
+        this.#FOLDER_ENTRY = FOLDER_ENTRY
 
-    static #unLinkFile = (name) => fs.unlink(name)
-    static #createFile = (name, content) => fs.writeFile(name, content)
-    static #getAllFiles = () => fs.readdir(this.#FOLDER_ENTRY)
-    static #getFileContent = (name) => fs.readFile(this.#FOLDER_ENTRY + name, 'utf-8')
+        this.#createFolder(this.#FOLDER_ENTRY)
+            .then(folderExist => folderExist && this.#unLinkOnStartUp())
+            .catch((err) => { throw new Error("Failed to create folder: " + err) })
+    }
 
-    static #handleError = (error, code, res) => res.status(code).json({ error })
+    #createFolder = async (path) => {
+        const folderExist = fsSync.existsSync(path);
+        if (!folderExist) return fsAsync.mkdir(path)
 
-    static handleFileCreation = (req, res) => {
+        return true
+    }
+
+    #unLinkOnStartUp = () => {
+        const currentTime = new Date().getTime()
+
+        this.#getAllFiles().then(files => {
+            files.forEach(async file => {
+                const sanitizeName = this.#sanitizeName(file)
+                const fileTime = await fsAsync.stat(sanitizeName);
+
+                const didPassUnlinkDelay = currentTime - fileTime.mtimeMs > this.#UNLINK_DELAY;
+                if (didPassUnlinkDelay) this.#unLinkFile(sanitizeName)
+            })
+        })
+    }
+
+    #getAllFiles = () => fsAsync.readdir(this.#FOLDER_ENTRY)
+    #getFileContent = (name) => fsAsync.readFile(this.#FOLDER_ENTRY + name, 'utf-8')
+    #unLinkFile = (name) => fsAsync.unlink(name)
+    #createFile = (name, content) => fsAsync.writeFile(name, content)
+
+    #handleError = (error, code, res) => res.status(code).json({ error })
+
+    #sanitizeName = (name) => {
+        const normalizedName = path.normalize(this.#FOLDER_ENTRY + name);
+        const isNameValid = (name.startsWith("./") && !name.includes('/', 2)) || !name.includes('/');
+
+        return isNameValid ? normalizedName : null
+    }
+
+    handleFileCreation = (req, res) => {
         const { name, content } = req.body;
 
+        const sanitizedName = this.#sanitizeName(name)
+
         if (!name) return this.#handleError("File name is required.", 400, res)
-        if (!this.#isNameValid(name)) return this.#handleError("Name is invalid. Please type a proper name.", 400, res)
+        if (!sanitizedName) return this.#handleError("Name is invalid. Please type a proper name.", 400, res)
 
-        const normalizedName = this.#normalizePath(name)
 
-        this.#createFile(normalizedName, content)
+        this.#createFile(sanitizedName, content)
             .then(() => {
-                setTimeout(() => this.#unLinkFile(normalizedName), this.#UNLINK_DELAY)
+                setTimeout(() => {
+                    this.#unLinkFile(sanitizedName)
+                }, this.#UNLINK_DELAY)
 
-                return res.status(201).json({ message: `Created ${normalizedName}` })
+                return res.status(201).json({ message: `Created ${sanitizedName}` })
             })
             .catch(() => this.#handleError("File not created.", 500, res))
     }
 
-    static handleFilesList = (_req, res) => {
+    handleFilesList = (_req, res) => {
         this.#getAllFiles()
             .then(data => res.send(data))
             .catch(() => this.#handleError("Couldn't get the files.", 500, res))
     }
 
-    static handleFileContent = (req, res) => {
+    handleFileContent = (req, res) => {
+        const sanitizedName = this.#sanitizeName(req.params.name)
+        if (!sanitizedName) return this.#handleError("Name is invalid. Please type a proper name.", 400, res)
+
         this.#getFileContent(req.params.name)
             .then(content => res.send(content))
-            .catch(() => this.#handleError("Couldn't get file content.", 500, res))
+            .catch(() => this.#handleError("Couldn't get the requested file content.", 500, res))
     }
 }
 
