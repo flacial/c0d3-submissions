@@ -22,7 +22,7 @@ class Commands {
             case 'ls':
                 return { fun, args };
             default:
-                return {};
+                return null;
         }
     };
 
@@ -30,16 +30,22 @@ class Commands {
         const resBody = { stdout: null, stderr: null };
         const args = this.getArgs(command);
 
+        if (!args) {
+            resBody.stderr = 'Error'
+            return resBody
+        };
+
         const cmd = spawn(args.fun, args.args);
 
         cmd.stdout.on('data', (data) => {
             resBody.stdout = `${data}`;
         });
+
         cmd.stderr.on('data', (data) => {
             resBody.stderr = `${data}`;
         });
 
-        return new Promise((res, rej) => {
+        return new Promise((res, _rej) => {
             cmd.addListener('exit', () => res(resBody));
         });
     };
@@ -61,7 +67,7 @@ class Commands {
             const { stdout, stderr } = await this.sendCommandOutput(command);
 
             stdout && (this.commandsCache[command] = stdout);
-            return res.json({ output: stderr ? 'Error' : stdout });
+            return res.json({ output: stderr ? 'Error' : (!stdout ? 'Empty Folder' : stdout) });
         }
 
         return res.send({
