@@ -34,7 +34,7 @@ class MemesGen {
           originalUrl,
         } = req;
     
-        if (this.memesCache.hasItem(originalUrl)) return res.send(this.memesCache.getItem(originalUrl).value);
+        if (this.memesCache.hasItem(originalUrl)) return res.send(this.memesCache.getItem(originalUrl));
     
         const {
           src,
