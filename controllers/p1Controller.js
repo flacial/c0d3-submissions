@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import fs from 'fs';
 import renderP1 from '../utils/renderP1.js';
+import { v4 as uuid4 } from 'uuid'
 
 class Visitors {
   constructor() {
@@ -59,7 +60,7 @@ class Visitors {
       if (!city) city = country;
 
       if (!req.session.privateId) {
-        req.session.privateId = req.session.id;
+        req.session.privateId = uuid4();
         this.modifyCountryVisitors(`${region ? `${region},` : ''} ${country}`, coordinates);
       }
 

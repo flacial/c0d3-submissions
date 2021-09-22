@@ -8,154 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            transition: all 0.3s ease;
-        }
-
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #DBA159;
-            height: 100vh;
-        }
-
-        #render {
-            height: 100%;
-            display: grid;
-            place-items: center;
-            padding: 0 1.5rem;
-        }
-
-        .card {
-            padding: 0 20px;
-            font-family: Roboto;
-            overflow: hidden;
-            max-width: 794px;
-            max-height: 566px;
-            width: 100%;
-            height: 100%;
-            background-color: #EFD780;
-            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-            border-radius: 33px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .title {
-            font-style: normal;
-            font-weight: bold;
-            font-size: 54px;
-            line-height: 63px;
-
-            color: #9F8F53;
-            text-shadow: 2px 0 #bbaa6c;
-            margin-bottom: 70px;
-        }
-
-        .inputs {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            width: 100%;
-            row-gap: 10px
-        }
-
-        .input {
-            max-width: 419px;
-            max-height: 45px;
-            height: 100%;
-            width: 100%;
-
-            background-color: #9F8F53ad;
-
-            border: 1px solid #FCFDAF;
-            box-sizing: border-box;
-            border-radius: 11px;
-            padding: 0 24px;
-
-            font-style: normal;
-            font-weight: 500;
-            font-size: 18px;
-            color: rgba(254, 255, 173, 0.973);
-            outline: 0;
-            transition: box-shadow 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-            box-shadow: inset 0 0 10px #3f3f3f47;
-        }
-
-        .input:focus,
-        .input:hover {
-            box-shadow: inset 0 0 10px #e6e6e62a;
-        }
-
-        .input::placeholder {
-            font-style: normal;
-            font-weight: 500;
-            font-size: 18px;
-            color: rgba(254, 255, 173, 0.72);
-        }
-
-        .submit {
-            max-width: 419px;
-            max-height: 63px;
-            width: 100%;
-            height: 100%;
-            background-color: #55945B;
-            border: 1px solid #3e7944;
-            box-sizing: border-box;
-            border-radius: 11px;
-
-            font-family: Roboto;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 24px;
-            line-height: 28px;
-
-            color: #7BDD85;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease-in-out;
-            box-shadow: inset 0 0 10px #3f3f3f47;
-        }
-
-        .submit:hover {
-            box-shadow: inset 0 0 10px #e6e6e647;
-            background-color: #55945bad;
-            color: #307136;
-        }
-
-        .hint {
-            font-style: normal;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 21px;
-
-            color: #9F8F53;
-        }
-
-        .hint span {
-            font-style: normal;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 21px;
-
-            color: #55945B;
-            margin-left: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .hint span:hover {
-            color: #3f6d44
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="http://localhost:8124/cdn/p5.css">
     <title>Chatroom</title>
 </head>
 
@@ -163,192 +16,258 @@
     <div id="render"></div>
 
     <script>
-        let chatRoomName;
-        let userName;
-
         const render = document.querySelector('#render');
 
-        const storage = localStorage.getItem('jwt') || '[]'
-        const token = JSON.parse(storage)
+        const storage = localStorage.getItem('jwt');
+        let token = JSON.parse(storage);
+        let prevMessagesLength = 0;
 
-        const handleSignUpHint = () => signUpPage()
-        const handleLoginHint = () => loginPage()
+        const curry = (fn) => {
+            const arity = fn.length;
 
-        const handleSignUpSubmit = (e) => {
+            return function $curry(...args) {
+                if (args.length < arity) return $curry.bind(null, ...args);
+                return fn.call(null, ...args);
+            };
+        };
 
+        const sendMessage = (content, room) => {
+            console.log(token)
+            fetch(`/p5/api/${room}/messages`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content,
+                }),
+            });
+        };
+
+        const getMessages = async (room) => {
+            const roomRes = await fetch(`/p5/api/${room}/messages`);
+            const messages = await roomRes.json();
+
+            if (messages && messages.length !== prevMessagesLength) {
+                render.querySelector('.messages__container').innerHTML = renderMessages(messages);
+                prevMessagesLength = messages.length;
+            }
+
+            setTimeout(() => getMessages(room), 500);
+        };
+
+        const createEvent = (event, funToAdd, eventEl) => eventEl.addEventListener(event, funToAdd);
+        const eventL = curry(createEvent); // Just trying out currying.
+        const clickEvent = eventL('click');
+        const keyDownEvent = eventL('keydown');
+
+        const removeEvent = (el, event, funToRemove) => el.removeEventListener(event, funToRemove);
+
+        const joinUrlParamRoom = () => {
+            const room = document.location.pathname.split('/')[2];
+
+            return room ? chatRoomPage(room) : chatRoomNamePage();
+        };
+        const handleSignUpHint = () => signUpPage();
+        const handleLoginHint = () => loginPage();
+
+        const renderMessages = (messages) => (
+            messages ? messages.reduce((acc, {
+                owner,
+                content,
+            }) => acc += `<div class="message">
+                <span class="message__owner">${owner}:</span>
+                <p class="message__content">${content}</p>
+                </div>`, '') : ''
+        );
+
+        const handleSignUpSubmit = ({
+            fullName,
+            username,
+            password,
+            email,
+        }) => {
+            if (!fullName.value || !username.value || !password.value || !email
+                .value) {
+                return;
+            }
+
+            fetch('https://js5.c0d3.com/auth/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: fullName.value,
+                        email: email.value,
+                        name: name.value,
+                        password: Buffer.from(password, 'base64'),
+                    }),
+                })
+                .then((r) => r.json())
+                .then((data) => {
+                    password.value = '';
+
+                    if (data.jwt) {
+                        localStorage.setItem('jwt', JSON.stringify(data.jwt));
+                        joinUrlParamRoom();
+                    }
+                });
+        };
+
+        const handleLoginSubmit = (username, password) => {
+            if (!username.value || !password.value) {
+                return;
+            }
+
+            fetch('https://js5.c0d3.com/auth/api/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username.value,
+                        password: btoa(password.value),
+                    }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    password.value = '';
+
+                    if (data.jwt) {
+                        localStorage.setItem('jwt', JSON.stringify(data.jwt));
+                        token = data.jwt
+                        joinUrlParamRoom();
+                    }
+                });
         }
 
-        const handleLoginSubmit = (e) => {
+        const handleSendMessageKey = (e, room) => {
+            const content = e.target.value;
 
-        }
+            if (content && e.key === 'Enter') {
+                sendMessage(content, room);
+                e.target.value = '';
+            }
+        };
 
-        const swapEvents = (eventEl, funToAdd, funToRemove) => {
-            render.querySelector(eventEl).addEventListener('click', funToAdd)
-            removeEventListener('click', funToRemove)
-        }
+        const parentContainer = (childs) => `<div class="card">${childs}</div>`;
 
-        const parentContainer = (childs) => (
-            `
-            <div class="card">
-                ${childs}
-            </div>
-            `
-        )
+        const chatRoomPage = async (room) => {
+            const roomRes = await fetch(`/p5/api/${room}/messages`);
+            const messages = await roomRes.json();
 
-        const chatRoomPage = (messages) => {
+            if (messages) prevMessagesLength = messages.length;
+
             const html = `
-            <h1 class="title">Chat Room: ${chatRoomName}</h1>
-            <div class="chat">
-                ${messages && messages.reduce((acc, message) => {
-                    return acc += `<div class="message">
-                        <span class="owner">${message.owner}</span>
-                        <p class="message__content">${message.content}</p>
-                        </div>`
-                }, '')}    
-            </div>
-            `
+                <h1 class="title">Chat Room: ${room}</h1>
+                <input type="text" placeholder="Message" class="input message"/>
+                <div class="messages__container">
+                    ${renderMessages(messages)}
+                </div>
+                `;
 
-            render.innerHTML = parentContainer(html)
-        }
+            render.innerHTML = parentContainer(html);
+
+            keyDownEvent((e) => handleSendMessageKey(e, room), render.querySelector('.message'));
+
+            getMessages(room);
+        };
 
         const chatRoomNamePage = () => {
             const html = `
-            <h1 class="title">Enter Room Name</h1>
-            <div class="inputs" style="margin-top: 40px;">
+                <h1 class="title">Enter Room Name</h1>
+                <div class="inputs" style="margin-top: 40px;">
                 <input type="text" placeholder="Room" class="input roomName"/>
                 <button class="submit">Join</button>
-            </div>
-            `
+                </div>
+                `;
 
+            render.innerHTML = parentContainer(html);
 
-            render.innerHTML = parentContainer(html)
+            const room = document.querySelector('.roomName');
 
-            const room = document.querySelector('.roomName')
-
-            render.querySelector('.submit').addEventListener('click', () => {
+            clickEvent(() => {
                 if (room.value) {
-                    chatRoomName = room.value;
-                    fetch(`http://localhost:8124/api/${room.value}/messages`)
-                        .then(r => r.json())
-                        .then(messages => {
-                            chatRoomPage(messages)
-                        })
+                    document.location = '/p5/' + room.value
                 }
-            })
-        }
+            }, render.querySelector('.submit'));
+        };
 
         const loginPage = () => {
+            console.log('Login page ran')
             const html = `
-            <h1 class="title">Login</h1>
-            <div class="inputs">
-                <input type="text" placeholder="Username" class="input username"/>
-                <input type="password" placeholder="Password" class="input password"/>
-                <button class="submit">Log in</button>
-                <span class="hint">Don’t have an account?<span class="signup_page">Sign up</span></span>
-            </div>
-            `
+    <h1 class="title">Login</h1>
+    <div class="inputs">
+        <input type="text" placeholder="Username" class="input username"/>
+        <input type="password" placeholder="Password" class="input password"/>
+        <button class="submit">Log in</button>
+        <span class="hint">Don’t have an account?<span class="signup_page">Sign up</span></span>
+    </div>
+    `;
 
-            render.innerHTML = parentContainer(html)
+            render.innerHTML = parentContainer(html);
 
-            const username = document.querySelector('.username')
-            const password = document.querySelector('.password')
+            const username = render.querySelector('.username');
+            const password = render.querySelector('.password');
+            const signUpHint = render.querySelector('.signup_page')
+            const submit = render.querySelector('.submit')
 
-            swapEvents('.signup_page', handleSignUpHint, handleLoginHint)
+            removeEvent(signUpHint, 'click', handleLoginHint);
 
-            render.querySelector('.submit').addEventListener('click', (handleSignUpSubmit) => {
-                if (!username.value || !password.value) {
-                    return;
-                }
-
-                fetch('https://js5.c0d3.com/auth/api/session', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username: username.value,
-                            password: btoa(password.value)
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.jwt) {
-                            password.value = ""
-                            localStorage.setItem('jwt', JSON.stringify(data.jwt))
-                            chatRoomNamePage()
-                        }
-                    })
-            })
-        }
+            clickEvent(handleSignUpHint, signUpHint);
+            clickEvent(() => handleLoginSubmit(username, password), submit);
+        };
 
         const signUpPage = () => {
             const html = `
-    <h1 class="title">Sign up</h1>
-    <div class="inputs">
-        <input type="text" placeholder="Full name" class="input fullname"/>
-        <input type="text" placeholder="Username" class="input username"/>
-        <input type="email" placeholder="Email" class="input email"/>
-        <input type="password" placeholder="Password" class="input password"/>
-        <button class="submit">Sign up</button>
-        <span class="hint">Have an account?<span class="login_page">Login</span></span>
-    </div>
-    `
+<h1 class="title">Sign up</h1>
+<div class="inputs">
+<input type="text" placeholder="Full name" class="input fullname"/>
+<input type="text" placeholder="Username" class="input username"/>
+<input type="email" placeholder="Email" class="input email"/>
+<input type="password" placeholder="Password" class="input password"/>
+<button class="submit">Sign up</button>
+<span class="hint">Have an account?<span class="login_page">Login</span></span>
+</div>
+`;
 
-            render.innerHTML = parentContainer(html)
-            swapEvents('.login_page', handleLoginHint, handleSignUpHint)
+            render.innerHTML = parentContainer(html);
 
-            const fullName = document.querySelector('.fullname')
-            const username = document.querySelector('.username')
-            const password = document.querySelector('.password')
-            const email = document.querySelector('.email')
+            const fullName = document.querySelector('.fullname');
+            const username = document.querySelector('.username');
+            const password = document.querySelector('.password');
+            const email = document.querySelector('.email');
+            const submit = render.querySelector('.login_page');
 
+            removeEvent(submit, 'click', handleSignUpHint);
 
-            render.querySelector('.submit').addEventListener('click', () => {
-                if (!fullName.value || !username.value || !password.value || !email.value) {
-                    console.log('no username or password or email')
-                    return
-                }
+            clickEvent(handleLoginHint, submit);
+            clickEvent(() => handleSignUpSubmit({
+                fullName,
+                username,
+                password,
+                email,
+            }), render.querySelector('.submit'));
+        };
 
-                fetch('https://js5.c0d3.com/auth/api/users', {
-                        method: 'POST',
-                        headers: {
-                            'content-type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username: fullName.value,
-                            email: email.value,
-                            name: name.value,
-                            password: btoa(password.value)
-                        })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.jwt) {
-                            password.value = ""
-                            localStorage.setItem('jwt', JSON.stringify(data.jwt))
-                            chatRoomNamePage()
-                        }
-                    })
-            })
-
-        }
-
-        const getUserState = () => {
-            fetch('http://localhost:8124/api/session', {
+        const renderPage = () => {
+            fetch('/p5/api/session', {
                 headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            }).then(response => response.json()).then(userState => {
+                    Authorization: `Bearer ${token}`,
+                },
+            }).then((response) => response.json()).then((userState) => {
                 if (userState.jwt) {
-                    chatRoomNamePage()
+                    joinUrlParamRoom();
                     return;
                 }
 
-                loginPage()
-            })
-        }
+                loginPage();
+            });
+        };
 
-        getUserState()
+        renderPage();
     </script>
 </body>
 
