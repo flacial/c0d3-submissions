@@ -46,9 +46,7 @@ class Storage {
 
     add = async (key, value) => {
       const s = await this.#storage;
-      console.log(s, 'sss');
       s[key] = value;
-      console.log(s, 'ss');
       this.updateStorage();
       return this;
     }

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="http://localhost:8124/cdn/p5.css">
+    <link rel="stylesheet" type="text/css" href="https://laicalf.freedomains.dev/cdn/p5.css">
     <title>Chatroom</title>
 </head>
 
@@ -17,8 +17,9 @@
 
     <script>
         const render = document.querySelector('#render');
-
         const storage = localStorage.getItem('jwt');
+
+        // Best practices is to use httpOnly cookies?
         let token = JSON.parse(storage);
         let prevMessagesLength = 0;
 
@@ -32,7 +33,6 @@
         };
 
         const sendMessage = (content, room) => {
-            console.log(token)
             fetch(`/p5/api/${room}/messages`, {
                 method: 'POST',
                 headers: {
@@ -46,7 +46,9 @@
         };
 
         const getMessages = async (room) => {
-            const roomRes = await fetch(`/p5/api/${room}/messages`);
+            const roomRes = await fetch(`/p5/api/${room}/messages`, {
+                headers: { Authorization: `bearer ${token}` }
+            });
             const messages = await roomRes.json();
 
             if (messages && messages.length !== prevMessagesLength) {
@@ -102,7 +104,7 @@
                         username: fullName.value,
                         email: email.value,
                         name: name.value,
-                        password: Buffer.from(password, 'base64'),
+                        password: btoa(password),
                     }),
                 })
                 .then((r) => r.json())
@@ -155,15 +157,17 @@
         const parentContainer = (childs) => `<div class="card">${childs}</div>`;
 
         const chatRoomPage = async (room) => {
-            const roomRes = await fetch(`/p5/api/${room}/messages`);
+            const roomRes = await fetch(`/p5/api/${room}/messages`, {
+                headers: { Authorization: `bearer ${token}` }
+            });
             const messages = await roomRes.json();
 
             if (messages) prevMessagesLength = messages.length;
 
             const html = `
                 <h1 class="title">Chat Room: ${room}</h1>
-                <input type="text" placeholder="Message" class="input message"/>
-                <div class="messages__container">
+                <input type="text" style="margin-top: 40px;" placeholder="Message" class="input message"/>
+                <div style="margin-top: 20px;" class="messages__container">
                     ${renderMessages(messages)}
                 </div>
                 `;
@@ -178,7 +182,7 @@
         const chatRoomNamePage = () => {
             const html = `
                 <h1 class="title">Enter Room Name</h1>
-                <div class="inputs" style="margin-top: 40px;">
+                <div class="inputs">
                 <input type="text" placeholder="Room" class="input roomName"/>
                 <button class="submit">Join</button>
                 </div>
@@ -196,16 +200,15 @@
         };
 
         const loginPage = () => {
-            console.log('Login page ran')
             const html = `
-    <h1 class="title">Login</h1>
-    <div class="inputs">
-        <input type="text" placeholder="Username" class="input username"/>
-        <input type="password" placeholder="Password" class="input password"/>
-        <button class="submit">Log in</button>
-        <span class="hint">Don’t have an account?<span class="signup_page">Sign up</span></span>
-    </div>
-    `;
+                <h1 class="title">Login</h1>
+                <div class="inputs">
+                    <input type="text" placeholder="Username" class="input username"/>
+                    <input type="password" placeholder="Password" class="input password"/>
+                    <button class="submit">Log in</button>
+                    <span class="hint">Don’t have an account?<span class="signup_page"><span>Sign up</span><span class="line"></span></span></span>
+                </div>
+                `;
 
             render.innerHTML = parentContainer(html);
 
@@ -222,16 +225,16 @@
 
         const signUpPage = () => {
             const html = `
-<h1 class="title">Sign up</h1>
-<div class="inputs">
-<input type="text" placeholder="Full name" class="input fullname"/>
-<input type="text" placeholder="Username" class="input username"/>
-<input type="email" placeholder="Email" class="input email"/>
-<input type="password" placeholder="Password" class="input password"/>
-<button class="submit">Sign up</button>
-<span class="hint">Have an account?<span class="login_page">Login</span></span>
-</div>
-`;
+            <h1 class="title">Sign up</h1>
+            <div class="inputs">
+            <input type="text" placeholder="Full name" class="input fullname"/>
+            <input type="text" placeholder="Username" class="input username"/>
+            <input type="email" placeholder="Email" class="input email"/>
+            <input type="password" placeholder="Password" class="input password"/>
+            <button class="submit">Sign up</button>
+            <span class="hint">Have an account?<span class="login_page"><span>Login</span><span class="line"></span></span></span>
+            </div>
+            `;
 
             render.innerHTML = parentContainer(html);
 
