@@ -7,7 +7,7 @@ import p2Router from './routes/p2.js';
 import p3Router from './routes/p3.js';
 import p4Router from './routes/p4.js';
 import p5Router from './routes/p5.js';
-import cdnRouter from './routes/cdnRouter.js';
+import cdnRouter from './routes/cdn.js';
 
 const router = express();
 
