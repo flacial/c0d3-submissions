@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js --ignore '*.json'"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
+    "@babel/eslint-parser": "^7.15.7",
+    "@babel/preset-env": "^7.15.6",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.24.2"
