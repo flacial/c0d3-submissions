@@ -25,15 +25,8 @@ router.use(
 router.use(express.static('public'));
 router.use(express.json());
 
-router.options('/*', (_req, res) => {
-  res.set(Utils.CORS_HEADERS).sendStatus(200);
-});
-
-router.use('/*', (_req, res, next) => {
-  res.set(Utils.CORS_HEADERS);
-
-  next();
-});
+router.options('/*', (_req, res) => res.set(Utils.CORS_HEADERS).sendStatus(200));
+router.use('/*', (_req, res, next) => (res.set(Utils.CORS_HEADERS), next()));
 
 router.get('/', (_req, res) => res.sendFile(Utils.filePath('main.html')));
 router.use('/p1', p1Router);
