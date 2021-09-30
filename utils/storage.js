@@ -30,7 +30,7 @@ class Storage {
 
         const storeData = await fsAsync.readFile(this.#path, 'utf-8');
 
-        if (!storeData) this.updateStorage();
+        // if (!storeData) this.updateStorage();
         return JSON.parse(storeData || '{}');
       } catch (err) {
         throw new Error(err, 1);
@@ -66,6 +66,12 @@ class Storage {
     has = async (key) => {
       const s = await this.#storage;
       return s.hasOwnProperty(key);
+    }
+
+    some = async (fn) => {
+      const s = await this.#storage;
+
+      console.log(Object.values(s));
     }
 }
 
