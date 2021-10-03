@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import Storage from '../utils/storage.js';
-import Utils from '../utils/utils.js'
+import Utils from '../utils/utils.js';
 
 class Chatroom {
   #rooms;
@@ -28,8 +28,8 @@ class Chatroom {
   };
 
   handleHome = (_req, res) => {
-      res.set('cache-control', 'max-age=3000');
-      return res.sendFile(Utils.filePath('p5.html'));
+    res.set('cache-control', 'max-age=3000');
+    return res.sendFile(Utils.filePath('p5.html'));
   };
 
   handleSession = (req, res) => {

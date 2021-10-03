@@ -1,38 +1,37 @@
-// ** SDK METHODS **
+class Auth {
+  static host = 'https://laicalf.freedomains.dev/';
 
-// UTILS
-const curry = (fn) => {
-    const arity = fn.length
+  static #authCurry = (fn) => {
+    const arity = fn.length;
 
     return function $curry(...args) {
-        return args.length < arity ? $curry.bind(null, ...args) : fn.call(null, ...args)
-    }
-}
+      if (args.length < arity) return $curry.bind(null, ...args);
+      return fn.call(null, ...args);
+    };
+  };
 
-// sendRequest :: String -> String -> {Object} -> {Object}
-const sendRequest = async (method, url, body) => {
-    // Send a request and return a response object
+  // sendRequest :: String -> String -> {Object} -> {Object}
+  static #sendRequest = async (method, url, payload) => {
     const response = await fetch(url, {
-        method,
-        ...(method !== 'GET' && {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        })
-    })
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-    // Get the body object from the response object and return it
-    return await response.json()
+    const data = await response.json();
+
+    return data;
+  };
+
+  static #postRequest = this.#authCurry(this.#sendRequest)('POST');
+
+  static signup = this.#postRequest(`${Auth.host}p6/api/users`);
+
+  static login = this.#postRequest(`${Auth.host}p6/api/session`);
+
+  static getSession = () => fetch(`${Auth.host}p6/api/session`, { credentials: 'include' });
+
+  static logout = () => fetch(`${Auth.host}p6/api/session`, { credentials: 'include', method: 'DELETE' });
 }
-
-const postRequest = curry(sendRequest)('POST')
-// signup :: {Object} -> {Object}
-const signup = postRequest('http://localhost:8123/api/users')
-// login :: {Object} -> {Object}
-const login = postRequest('http://localhost:8123/api/session')
-
-const getRequest = curry(sendRequest)('GET')
-const getSession = getRequest('http://localhost:8123/api/session')
-
-

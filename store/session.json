@@ -1,1 +1,18 @@
-{"user":{"email":"test@test.com","password":"1234","username":"test","fullname":"testtest"}}
+{
+  "test": {
+    "email": "test@test.com",
+    "password": "$2b$10$xKwbjZKLMcvuSY17gO4sVerZxd2vk/4gzLAJBrrT.jW4A7K04Azdy"
+  },
+  "test2": {
+    "email": "test2@gmail.com",
+    "password": "$2b$10$kTzfGxbZe6uBdIcIhdEx4OmmT4B8gIh6spgBn0w6vw1BY/SYOfKr2"
+  },
+  "mike123": {
+    "email": "mike123@gmail.com",
+    "password": "$2b$10$QaUqxOYdoP88kLycPup14exYmwnWO4nxmyIkc8K6ugCepqagKHQyG"
+  },
+  "john123": {
+    "email": "john123@gmail.com",
+    "password": "$2b$10$/dZEDCYTCib04CWkIeFeA.ImSVy0pGLVjTwkuQPsygvNeSYU/fNzi"
+  }
+}
