@@ -5,9 +5,10 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
+    "start": "node server.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "dev": "nodemon app.js --ignore '*.json'"
+    "dev": "nodemon server.js",
+    "dev-json": "nodemon server.js --ignore '*.json'"
   },
   "repository": {
     "type": "git",
