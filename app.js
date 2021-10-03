@@ -19,7 +19,7 @@ router.use(
     saveUninitialized: true,
     cookie: {
       secure: 'auto',
-      maxAge: 60000 * 60, // 1 minute = 60,000ms / 60,000ms * 60 = 1hr
+      maxAge: 60000 * 60, // 1 minute = 60,000ms -> 60,000ms * 60 = 1hr
     },
   }),
 );
@@ -38,7 +38,7 @@ router.use('/p2', p2Router);
 router.use('/p3', p3Router);
 router.use('/p4', p4Router);
 router.use('/p5', p5Router);
-router.use('/p6', p6Router);
+router.use('/auth', p6Router);
 router.use('/cdn', cdnRouter);
 
-router.listen(process.env.PORT || 8124);
+export default router;
