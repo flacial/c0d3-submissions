@@ -1,5 +1,3 @@
-/* eslint-disable no-prototype-builtins */
-/* eslint-disable import/extensions */
 import express from 'express';
 import Chatroom from '../controllers/p5Controller.js';
 

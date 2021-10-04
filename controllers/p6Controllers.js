@@ -2,6 +2,7 @@ import validate from 'validator';
 import { v4 as uuid4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import atob from 'atob';
 import _ from 'lodash/fp.js';
 import Storage from '../utils/storage.js';
 
@@ -34,7 +35,7 @@ const emailExist = async (email) => !(await isEmailUnique(email));
 const areFieldsValid = async (username, password, email) => {
   switch (true) {
     case !username || !email || !password: return 'Missing required credentails. Make sure to include the username, email, and password';
-    case passwordLessThan5(password): return 'Password must be 5 or more characters!';
+    case passwordLessThan5(password): return 'Password must be longer than 5 characters!';
     case usernameHasInvalidChars(username): return 'Username contains invalid characters. Only use Letters and Numbers';
     case await usernameExist(username): return 'Username already exist';
     case emailHasInvalidChars(email): return 'Email is invalid. Make sure to only use valid characters';
@@ -43,12 +44,12 @@ const areFieldsValid = async (username, password, email) => {
   }
 };
 
-export const handleCreateUser = async (req, res) => {
+export const handleRegister = async (req, res) => {
   const {
     email, username, password, ...rest
   } = req.body;
   const uuid = uuid4();
-  const decodedPassword = atob(password);
+  const decodedPassword = password && atob(password);
 
   const errorMessage = await areFieldsValid(username, decodedPassword, email);
   if (errorMessage) return res.status(400).send({ error: { message: errorMessage } });
@@ -61,13 +62,13 @@ export const handleCreateUser = async (req, res) => {
   return res.json({ id: uuid, email, username });
 };
 
-export const handleLoginUser = async (req, res) => {
+export const handleLogin = async (req, res) => {
   const { username, password } = req.body;
 
   if (await userDontExist(username)) return res.status(400).send({ error: { message: 'User does not exists' } });
 
   const { email, password: hash } = await storage.getValue(username);
-  const decodedPassword = atob(password);
+  const decodedPassword = password && atob(password);
   const isSamePassword = await bcrypt.compare(decodedPassword, hash);
 
   if (isSamePassword) {
@@ -79,13 +80,9 @@ export const handleLoginUser = async (req, res) => {
   return res.status(400).json({ error: { message: 'Incorrect credentials' } });
 };
 
-export const handleJWT = async (req, res) => {
-  const { token } = req.session;
-
-  if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
-
+export const verifyToken = (token) => new Promise((resolve) => {
   jwt.verify(token, secret, async (err, decoded) => {
-    if (err) return res.status(400).json({ error: { message: 'Invalid token' } });
+    if (err) throw new Error(err);
 
     const username = decoded;
     const user = await storage.getValue(username);
@@ -93,11 +90,23 @@ export const handleJWT = async (req, res) => {
     if (user) {
       const { email } = user;
       const uuid = uuid4();
-      return res.json({ id: uuid, username, email });
+      return resolve({ id: uuid, username, email });
     }
 
-    return res.status(500).json({ error: { message: "Token is valid but user doesn't exist" } });
+    throw new Error(400);
   });
+});
+
+export const handleJWT = async (req, res) => {
+  try {
+    const { token } = req.session;
+    if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
+
+    const user = await verifyToken(token);
+    return res.json(user);
+  } catch (err) {
+    return res.status(400).json({ error: { message: 'Invalid token' } });
+  }
 };
 
 export const handleLogout = async (req, res) => {

@@ -30,17 +30,30 @@
             fetch(`/p5/api/${room}/messages`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content
+                }),
             });
         };
 
         const getMessages = async (room) => {
-            const roomRes = await fetch(`/p5/api/${room}/messages`, { credentials: 'include' });
+            const roomRes = await fetch(`/p5/api/${room}/messages`, {
+                credentials: 'include'
+            });
             const messages = await roomRes.json();
 
             if (messages && messages.length !== prevMessagesLength) {
-                render.querySelector('.messages__container').innerHTML = renderMessages(messages);
+                const messagesContainer = render.querySelector('.messages__container');
+
+                messagesContainer.innerHTML = renderMessages(messages);
+                messagesContainer.scroll({
+                    top: messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+                
                 prevMessagesLength = messages.length;
             }
 
@@ -81,7 +94,9 @@
 
             fetch('/auth/api/users', {
                     method: 'POST',
-                    headers: { 'content-type': 'application/json' },
+                    headers: {
+                        'content-type': 'application/json'
+                    },
                     body: JSON.stringify({
                         username: fullName.value,
                         email: email.value,
@@ -101,7 +116,9 @@
 
             fetch('/auth/api/session', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({
                         username: username.value,
                         password: btoa(password.value),
@@ -126,7 +143,9 @@
         const parentContainer = (child) => `<div class="card">${child}</div>`;
 
         const chatRoomPage = async (room) => {
-            const roomRes = await fetch(`/p5/api/${room}/messages`, { credentials: 'include' });
+            const roomRes = await fetch(`/p5/api/${room}/messages`, {
+                credentials: 'include'
+            });
             const messages = await roomRes.json();
 
             if (messages) prevMessagesLength = messages.length;
@@ -221,15 +240,17 @@
         };
 
         const renderPage = () => {
-            fetch('/auth/api/session', { credentials: 'include' })
-            .then((response) => response.json()).then((userState) => {
-                if (userState.id) {
-                    joinUrlParamRoom();
-                    return;
-                }
+            fetch('/auth/api/session', {
+                    credentials: 'include'
+                })
+                .then((response) => response.json()).then((userState) => {
+                    if (userState.id) {
+                        joinUrlParamRoom();
+                        return;
+                    }
 
-                loginPage();
-            });
+                    loginPage();
+                });
         };
 
         renderPage();
