@@ -1,5 +1,5 @@
 class Auth {
-  static host = 'https://laicalf.freedomains.dev/';
+  static host = 'https://laicalf.freedomains.dev/auth/api/';
 
   static #authCurry = (fn) => {
     const arity = fn.length;
@@ -27,11 +27,11 @@ class Auth {
 
   static #postRequest = this.#authCurry(this.#sendRequest)('POST');
 
-  static signup = this.#postRequest(`${Auth.host}p6/api/users`);
+  static signup = this.#postRequest(`${Auth.host}users`);
 
-  static login = this.#postRequest(`${Auth.host}p6/api/session`);
+  static login = this.#postRequest(`${Auth.host}session`);
 
-  static getSession = () => fetch(`${Auth.host}p6/api/session`, { credentials: 'include' });
+  static getSession = () => fetch(`${Auth.host}session`, { credentials: 'include' });
 
-  static logout = () => fetch(`${Auth.host}p6/api/session`, { credentials: 'include', method: 'DELETE' });
+  static logout = () => fetch(`${Auth.host}session`, { credentials: 'include', method: 'DELETE' });
 }
