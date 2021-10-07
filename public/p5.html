@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="https://laicalf.freedomains.dev/cdn/p5.css">
+    <link rel="stylesheet" type="text/css" href="/cdn/p5.css">
     <title>Chatroom</title>
 </head>
 
@@ -17,17 +17,17 @@
 
     <script>
         const render = document.querySelector('#render');
-        const storage = localStorage.getItem('jwt');
-
-        // Best practices is to use httpOnly cookies?
-        let token = JSON.parse(storage);
         let prevMessagesLength = 0;
 
-        const curry = (fn) => {
-            const arity = fn.length;
+        let token = localStorage.getItem('token') || '';
+        const storeToken = jwt => {
+            token = jwt;
+            localStorage.setItem('token', jwt);
+        };
 
+        const curry = (fn) => {
             return function $curry(...args) {
-                if (args.length < arity) return $curry.bind(null, ...args);
+                if (args.length < fn.length) return $curry.bind(null, ...args);
                 return fn.call(null, ...args);
             };
         };
@@ -35,32 +35,41 @@
         const sendMessage = (content, room) => {
             fetch(`/p5/api/${room}/messages`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    content,
+                    content
                 }),
             });
         };
 
         const getMessages = async (room) => {
             const roomRes = await fetch(`/p5/api/${room}/messages`, {
-                headers: { Authorization: `bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             const messages = await roomRes.json();
 
             if (messages && messages.length !== prevMessagesLength) {
-                render.querySelector('.messages__container').innerHTML = renderMessages(messages);
+                const messagesContainer = render.querySelector('.messages__container');
+
+                messagesContainer.innerHTML = renderMessages(messages);
+                messagesContainer.scroll({
+                    top: messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+
                 prevMessagesLength = messages.length;
             }
 
             setTimeout(() => getMessages(room), 500);
         };
 
-        const createEvent = (event, funToAdd, eventEl) => eventEl.addEventListener(event, funToAdd);
-        const eventL = curry(createEvent); // Just trying out currying.
+        const eventL = curry((event, funToAdd, eventEl) => eventEl.addEventListener(event, funToAdd));
         const clickEvent = eventL('click');
         const keyDownEvent = eventL('keydown');
 
@@ -68,11 +77,8 @@
 
         const joinUrlParamRoom = () => {
             const room = document.location.pathname.split('/')[2];
-
             return room ? chatRoomPage(room) : chatRoomNamePage();
         };
-        const handleSignUpHint = () => signUpPage();
-        const handleLoginHint = () => loginPage();
 
         const renderMessages = (messages) => (
             messages ? messages.reduce((acc, {
@@ -90,43 +96,37 @@
             password,
             email,
         }) => {
-            if (!fullName.value || !username.value || !password.value || !email
-                .value) {
-                return;
-            }
+            if (!fullName.value || !username.value || !password.value || !email.value) return;
 
-            fetch('https://js5.c0d3.com/auth/api/users', {
+            fetch('/auth/api/users', {
                     method: 'POST',
                     headers: {
-                        'content-type': 'application/json',
+                        'content-type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username: fullName.value,
+                        username: username.value,
                         email: email.value,
-                        name: name.value,
-                        password: btoa(password),
+                        name: fullName.value,
+                        password: btoa(password.value),
                     }),
                 })
                 .then((r) => r.json())
                 .then((data) => {
                     password.value = '';
-
                     if (data.jwt) {
-                        localStorage.setItem('jwt', JSON.stringify(data.jwt));
+                        storeToken(data.jwt);
                         joinUrlParamRoom();
                     }
                 });
         };
 
         const handleLoginSubmit = (username, password) => {
-            if (!username.value || !password.value) {
-                return;
-            }
+            if (!username.value || !password.value) return;
 
-            fetch('https://js5.c0d3.com/auth/api/session', {
+            fetch('/auth/api/session', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         username: username.value,
@@ -136,14 +136,13 @@
                 .then((response) => response.json())
                 .then((data) => {
                     password.value = '';
-
                     if (data.jwt) {
-                        localStorage.setItem('jwt', JSON.stringify(data.jwt));
-                        token = data.jwt
+                        storeToken(data.jwt);
                         joinUrlParamRoom();
-                    }
+                    };
                 });
         }
+
 
         const handleSendMessageKey = (e, room) => {
             const content = e.target.value;
@@ -154,11 +153,13 @@
             }
         };
 
-        const parentContainer = (childs) => `<div class="card">${childs}</div>`;
+        const parentContainer = (child) => `<div class="card">${child}</div>`;
 
         const chatRoomPage = async (room) => {
             const roomRes = await fetch(`/p5/api/${room}/messages`, {
-                headers: { Authorization: `bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             const messages = await roomRes.json();
 
@@ -193,9 +194,7 @@
             const room = document.querySelector('.roomName');
 
             clickEvent(() => {
-                if (room.value) {
-                    document.location = '/p5/' + room.value
-                }
+                if (room.value) document.location = '/p5/' + room.value
             }, render.querySelector('.submit'));
         };
 
@@ -217,9 +216,9 @@
             const signUpHint = render.querySelector('.signup_page')
             const submit = render.querySelector('.submit')
 
-            removeEvent(signUpHint, 'click', handleLoginHint);
+            removeEvent(signUpHint, 'click', loginPage);
 
-            clickEvent(handleSignUpHint, signUpHint);
+            clickEvent(signUpPage, signUpHint);
             clickEvent(() => handleLoginSubmit(username, password), submit);
         };
 
@@ -244,9 +243,9 @@
             const email = document.querySelector('.email');
             const submit = render.querySelector('.login_page');
 
-            removeEvent(submit, 'click', handleSignUpHint);
+            removeEvent(submit, 'click', signUpPage);
 
-            clickEvent(handleLoginHint, submit);
+            clickEvent(loginPage, submit);
             clickEvent(() => handleSignUpSubmit({
                 fullName,
                 username,
@@ -256,22 +255,18 @@
         };
 
         const renderPage = () => {
-            fetch('/p5/api/session', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }).then((response) => response.json()).then((userState) => {
-                if (userState.jwt) {
-                    joinUrlParamRoom();
-                    return;
-                }
-
-                loginPage();
-            });
+            fetch('/auth/api/session', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                .then((response) => response.json()).then((userState) =>
+                    userState.jwt ? joinUrlParamRoom() : loginPage());
         };
 
         renderPage();
     </script>
+    <script src="/cdn/auth.js"></script>
 </body>
 
 </html>

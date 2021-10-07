@@ -1,6 +1,6 @@
-import fetch from 'node-fetch';
 import Storage from '../utils/storage.js';
-import Utils from '../utils/utils.js'
+import Utils from '../utils/utils.js';
+import { verifyToken } from './p6Controllers.js';
 
 class Chatroom {
   #rooms;
@@ -10,35 +10,26 @@ class Chatroom {
   }
 
   handleUser = async (req, res, next) => {
-    const auth = req.get('Authorization');
-    const token = auth && auth.split(' ')[1];
+    try {
+      const auth = req.get('authorization');
+      const token = auth && auth.split(' ')[1];
+      if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
 
-    const userDataRes = await fetch('https://js5.c0d3.com/auth/api/session', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const user = await verifyToken(token);
+      req.user = user;
 
-    const userData = await userDataRes.json();
-    req.user = userData;
-
-    if (userData.error) { return res.status(403).send({ error: { message: 'User is not authenticated' } }); }
-
-    return next();
+      return next();
+    } catch (err) {
+      return res.status(403).send({ error: { message: 'User is not authenticated' } });
+    }
   };
 
   handleHome = (_req, res) => {
-      res.set('cache-control', 'max-age=3000');
-      return res.sendFile(Utils.filePath('p5.html'));
+    res.set('cache-control', 'max-age=3000');
+    return res.sendFile(Utils.filePath('p5.html'));
   };
 
-  handleSession = (req, res) => {
-    const { user } = req;
-
-    if (user.error) return res.status(403).json({ ...user });
-
-    return res.json({ ...user });
-  };
+  handleSession = (req, res) => res.json({ ...req.user });
 
   #addMessage = async (content, room, owner) => {
     try {
@@ -53,6 +44,7 @@ class Chatroom {
     }
   };
 
+  // POST
   handleMessageCreation = async (req, res) => {
     try {
       const { room } = req.params;
@@ -71,6 +63,7 @@ class Chatroom {
     }
   };
 
+  // GET
   handleGettingMessages = async (req, res) => {
     try {
       const { room } = req.params;
