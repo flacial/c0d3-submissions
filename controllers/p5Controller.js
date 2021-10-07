@@ -11,7 +11,8 @@ class Chatroom {
 
   handleUser = async (req, res, next) => {
     try {
-      const { token } = req.session;
+      const auth = req.get('authorization');
+      const token = auth && auth.split(' ')[1];
       if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
 
       const user = await verifyToken(token);
