@@ -1,5 +1,5 @@
 class Auth {
-  static host = 'https://laicalf.freedomains.dev/auth/api/';
+  static host = 'https://laicalf.freedomains.dev';
 
   static #authCurry = (fn) => {
     const arity = fn.length;
@@ -10,8 +10,8 @@ class Auth {
     };
   };
 
-  // sendRequest :: String -> String -> {Object} -> {Object}
-  static #sendRequest = async (method, url, payload) => {
+  // sendRequest :: String -> String -> { a } -> { b }
+  static #sendRequest = this.#authCurry(async (method, url, payload) => {
     const response = await fetch(url, {
       method,
       headers: {
@@ -23,15 +23,22 @@ class Auth {
     const data = await response.json();
 
     return data;
-  };
+  })
 
-  static #postRequest = this.#authCurry(this.#sendRequest)('POST');
+  static #postRequest = this.#sendRequest('POST');
 
-  static signup = this.#postRequest(`${Auth.host}users`);
+  static #getUser = this.#authCurry(async (requestFn, payload) => {
+    const user = await requestFn(payload);
 
-  static login = this.#postRequest(`${Auth.host}session`);
+    if (user.jwt) localStorage.setItem('token', user.jwt);
+    return user;
+  })
 
-  static getSession = () => fetch(`${Auth.host}session`, { credentials: 'include' });
+  static signup = this.#getUser(this.#postRequest(`${Auth.host}/auth/api/users`));
 
-  static logout = () => fetch(`${Auth.host}session`, { credentials: 'include', method: 'DELETE' });
+  static login = this.#getUser(this.#postRequest(`${Auth.host}/auth/api/session`));
+
+  static getSession = () => fetch(`${Auth.host}/auth/api/session`, { headers: { authorization: `Bearer ${localStorage.getItem('token')}` } });
+
+  static logout = () => localStorage.removeItem('token');
 }
