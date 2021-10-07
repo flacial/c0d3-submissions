@@ -19,6 +19,12 @@
         const render = document.querySelector('#render');
         let prevMessagesLength = 0;
 
+        let token = localStorage.getItem('token') || '';
+        const storeToken = jwt => {
+            token = jwt;
+            localStorage.setItem('token', jwt);
+        };
+
         const curry = (fn) => {
             return function $curry(...args) {
                 if (args.length < fn.length) return $curry.bind(null, ...args);
@@ -31,7 +37,8 @@
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json'
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     content
@@ -41,7 +48,9 @@
 
         const getMessages = async (room) => {
             const roomRes = await fetch(`/p5/api/${room}/messages`, {
-                credentials: 'include'
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             const messages = await roomRes.json();
 
@@ -53,15 +62,14 @@
                     top: messagesContainer.scrollHeight,
                     behavior: 'smooth'
                 });
-                
+
                 prevMessagesLength = messages.length;
             }
 
             setTimeout(() => getMessages(room), 500);
         };
 
-        const createEvent = (event, funToAdd, eventEl) => eventEl.addEventListener(event, funToAdd);
-        const eventL = curry(createEvent);
+        const eventL = curry((event, funToAdd, eventEl) => eventEl.addEventListener(event, funToAdd));
         const clickEvent = eventL('click');
         const keyDownEvent = eventL('keydown');
 
@@ -71,8 +79,6 @@
             const room = document.location.pathname.split('/')[2];
             return room ? chatRoomPage(room) : chatRoomNamePage();
         };
-        const handleSignUpHint = () => signUpPage();
-        const handleLoginHint = () => loginPage();
 
         const renderMessages = (messages) => (
             messages ? messages.reduce((acc, {
@@ -98,16 +104,19 @@
                         'content-type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username: fullName.value,
+                        username: username.value,
                         email: email.value,
-                        name: name.value,
+                        name: fullName.value,
                         password: btoa(password.value),
                     }),
                 })
                 .then((r) => r.json())
                 .then((data) => {
                     password.value = '';
-                    if (data.id) joinUrlParamRoom();
+                    if (data.jwt) {
+                        storeToken(data.jwt);
+                        joinUrlParamRoom();
+                    }
                 });
         };
 
@@ -127,9 +136,13 @@
                 .then((response) => response.json())
                 .then((data) => {
                     password.value = '';
-                    if (data.id) joinUrlParamRoom();
+                    if (data.jwt) {
+                        storeToken(data.jwt);
+                        joinUrlParamRoom();
+                    };
                 });
         }
+
 
         const handleSendMessageKey = (e, room) => {
             const content = e.target.value;
@@ -144,7 +157,9 @@
 
         const chatRoomPage = async (room) => {
             const roomRes = await fetch(`/p5/api/${room}/messages`, {
-                credentials: 'include'
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             const messages = await roomRes.json();
 
@@ -201,9 +216,9 @@
             const signUpHint = render.querySelector('.signup_page')
             const submit = render.querySelector('.submit')
 
-            removeEvent(signUpHint, 'click', handleLoginHint);
+            removeEvent(signUpHint, 'click', loginPage);
 
-            clickEvent(handleSignUpHint, signUpHint);
+            clickEvent(signUpPage, signUpHint);
             clickEvent(() => handleLoginSubmit(username, password), submit);
         };
 
@@ -228,9 +243,9 @@
             const email = document.querySelector('.email');
             const submit = render.querySelector('.login_page');
 
-            removeEvent(submit, 'click', handleSignUpHint);
+            removeEvent(submit, 'click', signUpPage);
 
-            clickEvent(handleLoginHint, submit);
+            clickEvent(loginPage, submit);
             clickEvent(() => handleSignUpSubmit({
                 fullName,
                 username,
@@ -241,16 +256,12 @@
 
         const renderPage = () => {
             fetch('/auth/api/session', {
-                    credentials: 'include'
-                })
-                .then((response) => response.json()).then((userState) => {
-                    if (userState.id) {
-                        joinUrlParamRoom();
-                        return;
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-
-                    loginPage();
-                });
+                })
+                .then((response) => response.json()).then((userState) =>
+                    userState.jwt ? joinUrlParamRoom() : loginPage());
         };
 
         renderPage();
