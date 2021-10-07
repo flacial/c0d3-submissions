@@ -10,36 +10,26 @@ const { curry } = _;
 
 const secret = 'you can never guess it';
 const storage = new Storage('store', 'session', 'json');
-const isUnique = async (condition, value) => {
+
+const isUnique = curry(async (condition, value) => {
   const unique = await storage.some(([id, creds]) => condition(id, creds, value));
   return !unique;
-};
+});
 
-const emailCondition = (_, creds, prop) => creds.email === prop;
-const isEmailUnique = curry(isUnique)(emailCondition);
+const isEmailUnique = isUnique((_, creds, prop) => creds.email === prop);
+const isUsernameUnique = isUnique((id, _, prop) => id === prop);
 
-const usernameCondition = (id, _, prop) => id === prop;
-const isUsernameUnique = curry(isUnique)(usernameCondition);
-const userDontExist = isUsernameUnique;
-
-const createToken = (payload) => jwt.sign(payload, secret);
+const createToken = (payload) => jwt.sign({ payload }, secret, { expiresIn: 1000 * 60 * 5 });
 const encrypt = async (saltRounds, data) => bcrypt.hash(data, saltRounds);
 
-const passwordLessThan5 = (password) => password.length < 5;
-const usernameHasInvalidChars = (username) => !validate.isAlphanumeric(username);
-const usernameExist = async (username) => !(await isUsernameUnique(username));
-const emailHasInvalidChars = (email) => !validate.isEmail(email);
-const emailExist = async (email) => !(await isEmailUnique(email));
-
-// Can use compose here.
 const areFieldsValid = async (username, password, email) => {
   switch (true) {
     case !username || !email || !password: return 'Missing required credentails. Make sure to include the username, email, and password';
-    case passwordLessThan5(password): return 'Password must be longer than 5 characters!';
-    case usernameHasInvalidChars(username): return 'Username contains invalid characters. Only use Letters and Numbers';
-    case await usernameExist(username): return 'Username already exist';
-    case emailHasInvalidChars(email): return 'Email is invalid. Make sure to only use valid characters';
-    case await emailExist(email): return 'Email already exist';
+    case password.length < 5: return 'Password must be longer than 5 characters!';
+    case !validate.isAlphanumeric(username): return 'Username contains invalid characters. Only use Letters and Numbers';
+    case !(await isUsernameUnique(username)): return 'Username already exist';
+    case !validate.isEmail(email): return 'Email is invalid. Make sure to only use valid characters';
+    case !(await isEmailUnique(email)): return 'Email already exist';
     default: return null;
   }
 };
@@ -48,68 +38,69 @@ export const handleRegister = async (req, res) => {
   const {
     email, username, password, ...rest
   } = req.body;
-  const uuid = uuid4();
+  const id = uuid4();
   const decodedPassword = password && atob(password);
 
   const errorMessage = await areFieldsValid(username, decodedPassword, email);
   if (errorMessage) return res.status(400).send({ error: { message: errorMessage } });
 
-  req.session.token = createToken(username);
+  const token = createToken(username);
 
   const passwordHash = await encrypt(10, decodedPassword);
-  storage.add(username, { email, password: passwordHash, ...rest });
+  storage.add(username, {
+    id, email, password: passwordHash, token, ...rest,
+  });
 
-  return res.json({ id: uuid, email, username });
+  return res.json({
+    id, email, username, jwt: token,
+  });
 };
 
 export const handleLogin = async (req, res) => {
   const { username, password } = req.body;
 
-  if (await userDontExist(username)) return res.status(400).send({ error: { message: 'User does not exists' } });
+  if (await isUsernameUnique(username)) return res.status(400).send({ error: { message: 'User does not exists' } });
+  if (!password) return res.status(400).send({ error: { message: 'Passsword must not be empty' } });
 
-  const { email, password: hash } = await storage.getValue(username);
+  const { email, password: hash, id } = await storage.getValue(username);
   const decodedPassword = password && atob(password);
   const isSamePassword = await bcrypt.compare(decodedPassword, hash);
 
   if (isSamePassword) {
-    const uuid = uuid4();
-    req.session.token = createToken(username);
-    return res.json({ id: uuid, email, username });
+    return res.json({
+      id, email, username, jwt: createToken(username),
+    });
   }
 
   return res.status(400).json({ error: { message: 'Incorrect credentials' } });
 };
 
-export const verifyToken = (token) => new Promise((resolve) => {
+export const verifyToken = (token) => new Promise((resolve, reject) => {
   jwt.verify(token, secret, async (err, decoded) => {
-    if (err) throw new Error(err);
+    if (err) return reject(new Error(400));
 
-    const username = decoded;
+    const { payload: username } = decoded;
     const user = await storage.getValue(username);
 
     if (user) {
-      const { email } = user;
-      const uuid = uuid4();
-      return resolve({ id: uuid, username, email });
+      const { email, id } = user;
+      return resolve({ id, username, email });
     }
 
-    throw new Error(400);
+    return reject(new Error(400));
   });
 });
 
-export const handleJWT = async (req, res) => {
+export const handleAuth = async (req, res) => {
   try {
-    const { token } = req.session;
+    const auth = req.get('authorization');
+    const token = auth && auth.split(' ')[1];
+
     if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
 
     const user = await verifyToken(token);
-    return res.json(user);
+    return res.json({ ...user, jwt: token });
   } catch (err) {
     return res.status(400).json({ error: { message: 'Invalid token' } });
   }
-};
-
-export const handleLogout = async (req, res) => {
-  req.session.token = null;
-  return res.sendStatus(200);
 };
