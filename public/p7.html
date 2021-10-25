@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .filesDropper {
+            min-height: 100%;
+            background-color: hsl(0deg, 0%, 10%);
+            border: 10px solid hsl(39, 100%, 50%);
+            display: grid;
+            place-items: center;
+        }
+
+        .dragText {
+            font-size: 30px;
+            color: hsl(39, 100%, 50%);
+            font-weight: bold;
+            pointer-events: none;
+        }
+    </style>
+    <title>Image Analysis</title>
+</head>
+
+<body>
+    <div class="filesDropper">
+        <a target="_blank" class="dragText">Drag file to upload</a>
+    </div>
+
+    <script>
+        const dropper = document.querySelector('.filesDropper');
+        const dragText = document.querySelector('.dragText');
+
+        const dragLeaveColor = {
+            initColor: "hsl(39deg, 100%, 50%",
+            dragColor: "hsl(20, 85%, 60%)"
+        };
+        const dragTextContent = {
+            initContent: "Drag file to upload",
+            dragContent: (num) => `Will upload ${num} file${num > 1 ? 's' : ''}`
+        }
+
+        const setDragStyles = (ev) => {
+            ev.preventDefault();
+
+            const files = ev.dataTransfer.items;
+
+            dropper.style.borderColor = dragLeaveColor.dragColor;
+            dragText.style.color = dragLeaveColor.dragColor;
+            dragText.innerText = dragTextContent.dragContent(files.length);
+        }
+
+        const setInitDragStyles = () => {
+            dropper.style.borderColor = dragLeaveColor.initColor;
+            dragText.style.color = dragLeaveColor.initColor;
+            dragText.innerText = dragTextContent.initContent;
+        }
+
+        const uploadImageFormData = async ({
+            url = 'https://laicalf.freedomains.dev/p7/imageAnalysis/',
+            data
+        }) => {
+            const formData = new FormData();
+
+            Object.values(data).forEach(e => {
+                const file = e.getAsFile();
+
+                const isImage = file.type.split("/")[0] === "image";
+                const isFile = e.kind === "file";
+
+                if (isFile && isImage) formData.append('userImages', file);
+            });
+
+            const res = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            })
+
+            const link = res.json();
+
+            return link;
+        };
+
+        const dropHandler = (ev) => {
+            ev.preventDefault();
+            const {
+                items
+            } = ev.dataTransfer;
+
+            if (items) {
+                uploadImageFormData({
+                    data: items
+                }).then((link) => {
+                    dragText.innerText = "Process Link"
+                    dragText.href = link.jobUrl
+                    dragText.style.pointerEvents = "auto"
+                })
+            }
+        };
+
+        dropper.addEventListener('dragover', setDragStyles)
+        dropper.addEventListener('dragleave', setInitDragStyles)
+        dropper.addEventListener('drop', dropHandler)
+    </script>
+</body>
+
+</html>
