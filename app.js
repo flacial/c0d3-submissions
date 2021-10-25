@@ -34,13 +34,13 @@ router.use('/*', (_req, res, next) => {
 });
 
 router.get('/', (_req, res) => res.sendFile(Utils.filePath('main.html')));
+router.use('/cdn', cdnRouter);
 router.use('/p1', p1Router);
 router.use('/p2', p2Router);
 router.use('/p3', p3Router);
 router.use('/p4', p4Router);
 router.use('/p5', p5Router);
 router.use('/auth', p6Router);
-router.use('/cdn', cdnRouter);
 router.use('/p7', p7Router);
 
 export default router;
