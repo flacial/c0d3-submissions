@@ -17,7 +17,9 @@ const deleteTrainedData = async () => {
   });
 };
 
-const createJobWorkers = (jobId, req) => {
+const createJobWorkers = async (jobId, req) => {
+  await deleteTrainedData();
+
   jobs[jobId] = {};
 
   req.files.forEach((file) => {
@@ -40,18 +42,24 @@ const createJobWorkers = (jobId, req) => {
 const isJobDone = (job) => jobs[job] && Object.values(jobs[job]).every(({ done }) => done);
 const jobPath = (req, path, jobId) => `${req.protocol}://${req.headers.host}${path}${jobId}`;
 
+const renderJob = (job) => Object.entries(job).reduce((acc, [imageName, jobState]) => `
+  ${acc}
+  <div class="jobContainer">
+  <img class="jobImage" src="/images/${imageName}" alt="${imageName}"/>
+  <p>${jobState.error ? 'Error occured' : jobState.text}</p>
+  </div>`, '');
+
 export const handleImageUpload = async (req, res) => {
   try {
     const jobId = uuid();
 
-    await deleteTrainedData();
     createJobWorkers(jobId, req);
 
     return res.status(201).send({
       jobUrl: jobPath(req, '/p7/imageAnalysis/jobs/', jobId),
     });
   } catch (err) {
-    res.status(500).send({ error: { message: "Couldn't delete trained data" } });
+    return res.status(500).send({ error: { message: "Couldn't delete trained data" } });
   }
 };
 
@@ -79,7 +87,7 @@ export const handleJob = (req, res) => {
     </style>
     <h1>Job process: ${jobId}</h1>
     <div>
-    ${Object.entries(jobs[jobId]).reduce((acc, [imageName, job]) => `${acc}<div class="jobContainer"><img class="jobImage" src="/images/${imageName}" alt="${imageName}"/><p>${job.error ? 'Error occured' : job.text}</p></div>`, '')}
+    ${renderJob(jobs[jobId])}
     </div>
     <script>
     const timeouts = [];

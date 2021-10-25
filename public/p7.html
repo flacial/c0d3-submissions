@@ -70,7 +70,7 @@
         }
 
         const uploadImageFormData = async ({
-            url = 'https://laicalf.freedomains.dev/p7/imageAnalysis/',
+            url = 'http://localhost:8124/p7/imageAnalysis/',
             data
         }) => {
             const formData = new FormData();
@@ -89,9 +89,7 @@
                 body: formData,
             })
 
-            const link = res.json();
-
-            return link;
+            return res.json();
         };
 
         const dropHandler = (ev) => {

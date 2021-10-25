@@ -14,9 +14,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+p7Router.get('/', (req, res) => res.sendFile(Utils.filePath('p7.html')));
 p7Router.post('/imageAnalysis', upload.array('userImages'), handleImageUpload);
 p7Router.get('/imageAnalysis/jobs/:jobId', handleJob);
 p7Router.get('/imageAnalysis/jobs/state/:jobId', handleJobDone);
-p7Router.get('/', (req, res) => res.sendFile(Utils.filePath('p7.html')));
 
 export default p7Router;
