@@ -8,6 +8,8 @@ class Utils {
     'Access-Control-Allow-Methods': 'GET, POST, DELETE',
     'Access-Control-Allow-Headers': 'Content-Type, Origin, Authorization',
   }
+
+  static resolvePath = (req, dir) => `${req.protocol}://${req.headers.host}${dir}`;
 }
 
 export default Utils;
