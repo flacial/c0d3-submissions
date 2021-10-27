@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selfie Queen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            background-image: linear-gradient(0deg, #00232b, #00a2ff4f);
+            min-height: 100%;
+            font-family: sans-serif;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .selfieContainer {
+            display: flex;
+            row-gap: 10px;
+            column-gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        video,
+        canvas {
+            border-radius: 20px
+        }
+
+        h1 {
+            font-size: 40px;
+            margin: 10px 0 10px 0;
+        }
+
+        h2 {
+            color: white;
+            margin-left: 20px;
+        }
+
+        .canvasContainer,
+        .videoContainer {
+            text-align: center;
+        }
+
+        button {
+            margin: 0 auto;
+            display: block;
+            margin-top: 30px;
+            border: 1px solid #616161;
+            background-color: #252525;
+            padding: 20px 72px;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #ececec;
+            font-weight: bold;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border 0.3s ease
+        }
+
+        button:hover {
+            border: 1px solid #777777;
+        }
+
+        .takenImagesLinks {
+            margin-bottom: 100px;
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .imgLink {
+            color: #deb887;
+        }
+    </style>
+    <section class="selfieContainer">
+        <section class="videoContainer">
+            <h1>Video</h1>
+            <video></video>
+        </section>
+        <section class="canvasContainer">
+            <h1>Snapshot</h1>
+            <canvas width="640px" height="480px">
+        </section>
+    </section>
+    <button class="snap">📷</button>
+    <hr>
+    <h2>Images</h2>
+    <section class="takenImagesLinks">
+    </section>
+</head>
+
+<body>
+    <script>
+        const video = document.querySelector('video');
+        const takenImagesLinks = document.querySelector('.takenImagesLinks');
+        const canvas = document.querySelector('canvas');
+        const context = canvas.getContext('2d');
+
+        const startRecording = () => {
+            const camera = navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+
+            camera.then((mediaStream) => {
+                video.srcObject = mediaStream;
+                video.onloadedmetadata = (e) => video.play();
+            })
+        }
+
+        startRecording()
+
+        const createLink = (text, href) => {
+            const link = document.createElement('a');
+            link.innerText = text;
+            link.href = href;
+            link.target = '_blank';
+            link.classList.add('imgLink');
+
+            return link
+        }
+
+        const prependChild = (parent, child) => parent.prepend(child);
+        const addImgLinkToLinks = ({ imgUrl }) => prependChild(takenImagesLinks, createLink(imgUrl, imgUrl))
+
+        const drawSnap = (el) => context.drawImage(el, 0, 0);
+
+        const sendSnap = () => {
+            const [, imageEncodedData] = canvas.toDataURL().split(',');
+
+            fetch('https://https://laicalf.freedomains.dev/p8/api/snap', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageData: imageEncodedData
+                    }),
+                })
+                .then(r => r.json())
+                .then(addImgLinkToLinks)
+        }
+
+        // Compose would be nice here.
+        const handleSnap = () => {
+            drawSnap(video);
+            sendSnap();
+        }
+
+        document.querySelector('.snap').addEventListener('click', handleSnap)
+    </script>
+</body>
+
+</html>

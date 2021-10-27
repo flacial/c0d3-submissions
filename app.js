@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import express from 'express';
 import session from 'express-session';
 import Utils from './utils/utils.js';
@@ -9,6 +8,7 @@ import p4Router from './routes/p4.js';
 import p5Router from './routes/p5.js';
 import p6Router from './routes/p6.js';
 import p7Router from './routes/p7.js';
+import p8Router from './routes/p8.js';
 import cdnRouter from './routes/cdn.js';
 
 const router = express();
@@ -42,5 +42,6 @@ router.use('/p4', p4Router);
 router.use('/p5', p5Router);
 router.use('/auth', p6Router);
 router.use('/p7', p7Router);
+router.use('/p8', p8Router);
 
 export default router;
