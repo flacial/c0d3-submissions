@@ -20,14 +20,18 @@ export const handleSnap = (req, res) => {
 
 // handleImage GET :: /p8/api/image
 export const handleSendingImage = async (req, res) => {
-  const { imageId } = req.params;
+  try {
+    const { imageId } = req.params;
 
-  res.set({
-    'content-type': 'image/png',
-    'cache-control': 'max-age=4000',
-  });
+    res.set({
+      'content-type': 'image/png',
+      'cache-control': 'max-age=4000',
+    });
 
-  const imageBuffer = await fsP.readFile(Utils.filePath(`images/${imageId}`));
+    const imageBuffer = await fsP.readFile(Utils.filePath(`images/${imageId}`));
 
-  return res.send(imageBuffer);
+    return res.send(imageBuffer);
+  } catch (e) {
+    return res.send({ error: { message: 'Requested file does not exist' } });
+  }
 };
