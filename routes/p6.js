@@ -2,7 +2,7 @@
 import express from 'express';
 import {
   handleRegister, handleLogin, handleAuth,
-} from '../controllers/p6Controllers.js';
+} from '../controllers/p6Controller.js';
 
 const p6Router = express.Router();
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import Utils from '../utils/utils.js';
-import { handleSnap, handleSendingImage } from '../controllers/p8.Controller.js';
+import { handleSnap, handleSendingImage } from '../controllers/p8Controller.js';
 
 const p8Router = express.Router();
 
