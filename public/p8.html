@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:ital,wght@0,500;0,700;1,400&display=swap"
+        rel="stylesheet">
     <title>Selfie Queen</title>
     <style>
         * {
@@ -12,97 +17,233 @@
         }
 
         html {
-            background-image: linear-gradient(0deg, #00232b, #00a2ff4f);
-            min-height: 100%;
-            font-family: sans-serif;
+            /* background: #5D5FEF; */
+            background-attachment: fixed;
+            background-image: linear-gradient(#5D5FEF, #2225F9);
+            height: 100%;
+            font-family: Roboto;
         }
 
         body {
             margin: 0;
+            min-height: 100%;
+            padding-top: 20px;
+        }
+
+        button:not([disabled]) {
+            cursor: pointer;
+        }
+
+        button:not([disabled]):active {
+            transform: scale(0.98)
+        }
+
+        h1 {
+            margin: 0;
+            font-weight: bold;
+            font-size: 64px;
+            align-items: center;
+            text-align: center;
+            font-family: "Playfair Display";
+
+            background-image: linear-gradient(60deg, hsl(0, 100%, 100%), hsla(0, 0%, 87%, 0.9));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .wrapper {
+            display: grid;
+            justify-items: center;
+            padding-bottom: 300px
         }
 
         .selfieContainer {
             display: flex;
-            row-gap: 10px;
-            column-gap: 10px;
-            flex-wrap: wrap;
+            margin-top: 50px;
             justify-content: center;
-        }
-
-        video,
-        canvas {
-            border-radius: 20px
-        }
-
-        h1 {
-            font-size: 40px;
-            margin: 10px 0 10px 0;
-        }
-
-        h2 {
-            color: white;
-            margin-left: 20px;
-        }
-
-        .canvasContainer,
-        .videoContainer {
-            text-align: center;
-        }
-
-        button {
-            margin: 0 auto;
-            display: block;
-            margin-top: 30px;
-            border: 1px solid #616161;
-            background-color: #252525;
-            padding: 20px 72px;
-            border-radius: 10px;
-            font-size: 20px;
-            color: #ececec;
-            font-weight: bold;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: border 0.3s ease
-        }
-
-        button:hover {
-            border: 1px solid #777777;
-        }
-
-        .takenImagesLinks {
-            margin-bottom: 100px;
-            margin-left: 20px;
-            display: flex;
             flex-direction: column;
+            align-items: center;
+            column-count: 1;
         }
 
-        .imgLink {
-            color: #deb887;
+        .snapContainer {
+            width: 100%;
+            /* height: 100%; */
+            height: 520px;
+            max-width: 765px;
+            /* max-height: 520px; */
+
+            background: rgba(66, 66, 66, 0.23);
+            box-shadow: 8px 4px 20px 14px rgba(61, 61, 61, 0.25);
+            border-radius: 16px;
+
+            position: relative;
+        }
+
+        .canvasContainer {
+            width: 50%;
+            height: 100%;
+            right: 0;
+            position: absolute;
+        }
+
+        .videoContainer {
+            max-width: 50%;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            height: 100%;
+            display: flex;
+        }
+
+        .videoContainer img,
+        .videoContainer video {
+            max-width: 382px;
+            width: 100%;
+            border-radius: 16px 0 0 16px;
+            object-fit: cover;
+        }
+
+        .fakeCanvas {
+            background-color: rgba(57, 57, 57, 0.296);
+            border-radius: 0px 16px 16px 0px;
+            height: 100%;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            flex-direction: column;
+            justify-content: space-evenly;
+            margin-left: -1px;
+            padding: 0 10px;
+        }
+
+        .fakeCanvas p {
+            font-weight: bold;
+            font-size: 36px;
+            color: rgb(255 255 255 / 46%);
+            margin: 0;
+        }
+
+        .fakeCanvas button {
+            width: 100%;
+            height: 100%;
+            max-width: 189px;
+            max-height: 56px;
+
+            background: #FEC83B;
+            box-shadow: 8px 10px 0px rgba(254, 200, 59, 0.26);
+            border: 0;
+            border-radius: 8px;
+
+            transition: box-shadow 0.3s ease;
+        }
+
+        .fakeCanvas button:hover {
+            box-shadow: 0px 0px 0px rgba(254, 200, 59, 0.26);
+        }
+
+        .selfieContainer__controllers {
+            margin-top: 50px;
+            display: flex;
+            column-gap: 24px;
+        }
+
+        .controlButton {
+            background-color: rgba(57, 57, 57, 0.48);
+            border-radius: 8px;
+            border: 0;
+            padding: 12px 50px;
+            color: rgba(255, 255, 255, 0.66);
+            transition: background-color 0.3s ease;
+            filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.17));
+        }
+
+        .controlButton:not([disabled]):hover {
+            background-color: rgba(72, 72, 72, 0.48);
+        }
+
+        .controlButton:disabled {
+            color: rgba(255, 255, 255, 0.378);
+        }
+
+        .controlText {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .takenImagesContainer {
+            margin-top: 140px;
+            max-width: 700px;
+            width: 100%;
+            row-gap: 80px;
+            display: grid;
+        }
+
+        .otherUsersImage {
+            width: 208px;
+            height: 208px;
+            left: 374px;
+            top: 1229px;
+
+            background: rgba(57, 57, 57, 0.48);
+            border-radius: 12px;
+        }
+
+        .usersImages {
+            display: flex;
+            justify-content: center;
+            column-gap: 35px;
+            row-gap: 35px;
+            flex-wrap: wrap;
         }
     </style>
-    <section class="selfieContainer">
-        <section class="videoContainer">
-            <h1>Video</h1>
-            <video></video>
+    <header>
+        <h1>Selfie 👑</h1>
+    </header>
+    <div class="wrapper">
+        <section class="selfieContainer">
+            <section class="snapContainer">
+                <section class="videoContainer">
+                    <!-- <video></video> -->
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Poster-sized_portrait_of_Barack_Obama.jpg/1200px-Poster-sized_portrait_of_Barack_Obama.jpg"
+                        alt="Obama">
+                </section>
+                <section class="canvasContainer">
+                    <!-- <canvas width="640px" height="480px"> -->
+                    <div class="fakeCanvas">
+                        <p>
+                            Waiting for your 🐱 snap
+                        </p>
+                        <button>📷</button>
+                    </div>
+                </section>
+            </section>
+            <div class="selfieContainer__controllers">
+                <button class="controlButton"><span class="controlText">Images</span></button>
+                <button class="controlButton" disabled="disabled"><span class="controlText">Upload</span></button>
+            </div>
         </section>
-        <section class="canvasContainer">
-            <h1>Snapshot</h1>
-            <canvas width="640px" height="480px">
+        <section class="takenImagesContainer">
+            <h1>All taken snaps</h1>
+            <div class="usersImages">
+                <div class="otherUsersImage"></div>
+                <div class="otherUsersImage"></div>
+                <div class="otherUsersImage"></div>
+                <div class="otherUsersImage"></div>
+                <div class="otherUsersImage"></div>
+                <div class="otherUsersImage"></div>
+
+            </div>
         </section>
-    </section>
-    <button class="snap">📷</button>
-    <hr>
-    <h2>Images</h2>
-    <section class="takenImagesLinks">
-    </section>
+    </div>
 </head>
 
 <body>
     <script>
         const video = document.querySelector('video');
-        const takenImagesLinks = document.querySelector('.takenImagesLinks');
-        const canvas = document.querySelector('canvas');
-        const context = canvas.getContext('2d');
+        // const takenImagesLinks = document.querySelector('.takenImagesLinks');
+        // const canvas = document.querySelector('canvas');
+        // const context = canvas.getContext('2d');
 
         const startRecording = () => {
             const camera = navigator.mediaDevices.getUserMedia({
@@ -116,7 +257,7 @@
             })
         }
 
-        startRecording()
+        // startRecording()
 
         const createLink = (text, href) => {
             const link = document.createElement('a');
@@ -129,7 +270,9 @@
         }
 
         const prependChild = (parent, child) => parent.prepend(child);
-        const addImgLinkToLinks = ({ imgUrl }) => prependChild(takenImagesLinks, createLink(imgUrl, imgUrl))
+        const addImgLinkToLinks = ({
+            imgUrl
+        }) => prependChild(takenImagesLinks, createLink(imgUrl, imgUrl))
 
         const drawSnap = (el) => context.drawImage(el, 0, 0);
 
@@ -155,7 +298,7 @@
             sendSnap();
         }
 
-        document.querySelector('.snap').addEventListener('click', handleSnap)
+        // document.querySelector('.snap').addEventListener('click', handleSnap)
     </script>
 </body>
 
