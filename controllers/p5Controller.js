@@ -1,6 +1,6 @@
 import Storage from '../utils/storage.js';
 import Utils from '../utils/utils.js';
-import { verifyToken } from './p6Controllers.js';
+import { verifyToken } from './p6Controller.js';
 
 class Chatroom {
   #rooms;
