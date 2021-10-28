@@ -10,10 +10,7 @@ const deleteTrainedData = async () => {
   const files = await fsP.readdir('./');
 
   files.forEach((file) => {
-    if (file.includes('traineddata')) {
-      fsP.unlink(file);
-      console.log('Deleted training data:', file);
-    }
+    if (file.includes('traineddata')) fsP.unlink(file);
   });
 };
 
@@ -59,7 +56,7 @@ export const handleImageUpload = async (req, res) => {
       jobUrl: jobPath(req, '/p7/imageAnalysis/jobs/', jobId),
     });
   } catch (err) {
-    return res.status(500).send({ error: { message: "Couldn't delete trained data" } });
+    return res.status(500).send({ error: { message: "Couldn't create job workers" } });
   }
 };
 
