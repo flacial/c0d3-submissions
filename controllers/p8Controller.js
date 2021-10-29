@@ -4,6 +4,8 @@ import Utils from '../utils/utils.js';
 
 const fsP = fs.promises;
 
+const getAllUsersImages = () => fsP.readdir('public/images');
+
 // handleSnap POST :: /p8/api/snap
 export const handleSnap = (req, res) => {
   try {
@@ -34,4 +36,13 @@ export const handleSendingImage = async (req, res) => {
   } catch (e) {
     return res.send({ error: { message: 'Requested file does not exist' } });
   }
+};
+
+// handleSendingImages GET :: /p8/api/images
+export const handleSendingImages = async (req, res) => {
+  const userImages = await getAllUsersImages();
+
+  const mapUserImagesToUrl = userImages.map((imageName) => Utils.resolvePath(req, `/p8/api/image/${imageName}`));
+
+  return res.send(mapUserImagesToUrl);
 };
