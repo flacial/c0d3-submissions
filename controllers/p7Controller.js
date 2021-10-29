@@ -26,25 +26,30 @@ const createJobWorkers = async (jobId, req) => {
     job[filename] = { text: 'Processing the file', error: false, done: false };
     const jobFile = job[filename];
 
-    Tesseract.recognize(Utils.filePath(`images/${filename}`), 'eng').then((d) => {
-      jobFile.text = d.data.text;
-      jobFile.done = true;
-    }).catch(() => {
-      jobFile.error = true;
-      jobFile.done = true;
-    });
+    Tesseract.recognize(Utils.filePath(`images/${filename}`), 'eng')
+      .then((d) => {
+        jobFile.text = d.data.text;
+        jobFile.done = true;
+      })
+      .catch(() => {
+        jobFile.error = true;
+        jobFile.done = true;
+      });
   });
 };
 
 const isJobDone = (job) => jobs[job] && Object.values(jobs[job]).every(({ done }) => done);
-const jobPath = (req, path, jobId) => `${req.protocol}://${req.headers.host}${path}${jobId}`;
+const jobPath = (req, path, jobId) => `https://${req.headers.host}${path}${jobId}`;
 
-const renderJob = (job) => Object.entries(job).reduce((acc, [imageName, jobState]) => `
+const renderJob = (job) => Object.entries(job).reduce(
+  (acc, [imageName, jobState]) => `
   ${acc}
   <div class="jobContainer">
   <img class="jobImage" src="/images/${imageName}" alt="${imageName}"/>
   <p>${jobState.error ? 'Error occured' : jobState.text}</p>
-  </div>`, '');
+  </div>`,
+  '',
+);
 
 export const handleImageUpload = async (req, res) => {
   try {
@@ -56,7 +61,9 @@ export const handleImageUpload = async (req, res) => {
       jobUrl: jobPath(req, '/p7/imageAnalysis/jobs/', jobId),
     });
   } catch (err) {
-    return res.status(500).send({ error: { message: "Couldn't create job workers" } });
+    return res
+      .status(500)
+      .send({ error: { message: "Couldn't create job workers" } });
   }
 };
 
@@ -89,12 +96,20 @@ export const handleJob = (req, res) => {
     <script>
     const timeouts = [];
     const getProcessUpdates = async () => {
-      const job = await fetch("${jobPath(req, '/p7/imageAnalysis/jobs/', jobId)}")
+      const job = await fetch("${jobPath(
+    req,
+    '/p7/imageAnalysis/jobs/',
+    jobId,
+  )}")
 
       const jobHtml = await job.text()
       document.body.innerHTML = jobHtml
 
-      const jobDone = await fetch("${jobPath(req, '/p7/imageAnalysis/jobs/state/', jobId)}")
+      const jobDone = await fetch("${jobPath(
+    req,
+    '/p7/imageAnalysis/jobs/state/',
+    jobId,
+  )}")
 
       const isJobDone = await jobDone.text();
       if (isJobDone === "true") return timeouts.forEach((id) => clearTimeout(id))
