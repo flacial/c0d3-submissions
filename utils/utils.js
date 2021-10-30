@@ -1,6 +1,9 @@
 import path from 'path';
 import fs from 'fs';
+import fp from 'lodash/fp.js';
 
+const fsP = fs.promises;
+const { curry } = fp;
 class Utils {
   static filePath = (pathName) => `${path.resolve()}/public/${pathName}`;
 
@@ -15,6 +18,15 @@ class Utils {
   static createDir = (dirPath) => {
     if (!fs.existsSync(dirPath)) fs.mkdir(dirPath, (e) => e && console.error(e));
   }
+
+  static deleteDir = curry((dir, file) => {
+    try {
+      const filePath = `${dir}/${file}`;
+      if (fs.existsSync(filePath)) fsP.unlink(filePath);
+    } catch (e) {
+      console.error('Could not link file', e);
+    }
+  })
 }
 
 export default Utils;
