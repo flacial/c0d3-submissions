@@ -112,20 +112,6 @@ describe('Users POST :: /auth/api/users', () => {
       });
   });
 
-  it(`should send email and password only and respond with 400 - ${authMissingCredsErr}`, (done) => {
-    expect.assertions(2);
-
-    request(app)
-      .post(authUsersPath)
-      .send({ email, password })
-      .then((response) => {
-        expect(response.statusCode).toEqual(400);
-        expect(response.body.error.message).toEqual(authMissingCredsErr);
-
-        done();
-      });
-  });
-
   it(`should send invalidPassword along with valid creds and respond with 400 - ${authPasswordErr}`, (done) => {
     expect.assertions(2);
 
