@@ -11,9 +11,9 @@ import p7Router from './routes/p7.js';
 import p8Router from './routes/p8.js';
 import cdnRouter from './routes/cdn.js';
 
-const router = express();
+const app = express();
 
-router.use(
+app.use(
   session({
     secret: 'A great secret',
     resave: false,
@@ -24,24 +24,24 @@ router.use(
     },
   }),
 );
-router.use(express.static('public'));
-router.use(express.json({ limit: '50mb' }));
+app.use(express.static('public'));
+app.use(express.json({ limit: '50mb' }));
 
-router.options('/*', (_req, res) => res.set(Utils.CORS_HEADERS).sendStatus(200));
-router.use('/*', (_req, res, next) => {
+app.options('/*', (_req, res) => res.set(Utils.CORS_HEADERS).sendStatus(200));
+app.use('/*', (_req, res, next) => {
   res.set(Utils.CORS_HEADERS);
   return next();
 });
 
-router.get('/', (_req, res) => res.sendFile(Utils.filePath('main.html')));
-router.use('/cdn', cdnRouter);
-router.use('/p1', p1Router);
-router.use('/p2', p2Router);
-router.use('/p3', p3Router);
-router.use('/p4', p4Router);
-router.use('/p5', p5Router);
-router.use('/auth', p6Router);
-router.use('/p7', p7Router);
-router.use('/p8', p8Router);
+app.get('/', (_req, res) => res.sendFile(Utils.filePath('main.html')));
+app.use('/cdn', cdnRouter);
+app.use('/p1', p1Router);
+app.use('/p2', p2Router);
+app.use('/p3', p3Router);
+app.use('/p4', p4Router);
+app.use('/p5', p5Router);
+app.use('/auth', p6Router);
+app.use('/p7', p7Router);
+app.use('/p8', p8Router);
 
-export default router;
+export default app;
