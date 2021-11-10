@@ -1,5 +1,4 @@
 /* eslint-disable linebreak-style */
-/* eslint-disable linebreak-style */
 /* eslint-disable import/extensions */
 import fetch from 'node-fetch';
 import fs from 'fs';
@@ -65,7 +64,7 @@ class Visitors {
       res.set('Cache-Control', 'max-age=3000');
 
       const userLocation = await this.getLocation(
-        '72.229.28.185' || req.get('x-forwarded-for'),
+        req.get('x-forwarded-for') || '72.229.28.185',
       );
       let { city } = userLocation;
       const { coordinates, region, country } = userLocation;
