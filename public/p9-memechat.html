@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fascinate&family=Rubik&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://laicalf.freedomains.dev/cdn/p9-memechat.css">
+    <title>Meme Chat</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="videoCont">
+            <video></video>
+            <div class="videoPlaceholder"></div>
+            <div class="inputCont">
+                <img src="https://laicalf.freedomains.dev/cdn/doge-icon.svg" alt="Doge">
+                <input type="text" placeholder="Meme text...">
+            </div>
+        </div>
+        <div class="memes">
+            <h1>Memes</h1>
+        </div>
+    </div>
+
+    <script>
+        const videoPlaceholder = document.querySelector('.videoPlaceholder');
+        const memesContainer = document.querySelector('.memes')
+        const video = document.querySelector('video');
+        const input = document.querySelector('input');
+
+        const createAllMemesContainer = (memes) => {
+            const allMemes = document.createElement('div');
+            allMemes.classList.add('allMemes');
+
+            memes.forEach(memeUrl => allMemes.appendChild(createUsersMeme(memeUrl)));
+
+            return allMemes;
+        }
+
+        const displayVideoPlaceholder = (video, placeholder) => {
+            video.style.display = 'none';
+            placeholder.style.display = 'initial';
+        }
+
+        const startRecording = () => {
+            const camera = navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+
+            camera.then((mediaStream) => {
+                video.srcObject = mediaStream;
+
+                video.onloadedmetadata = () => {
+                    video.play()
+
+                    input.addEventListener('keydown', inputEnterHandler)
+                };
+            }).catch(() => displayVideoPlaceholder(video, videoPlaceholder))
+        }
+
+        const getImageEncodedData = (video) => {
+            const canvas = document.createElement('canvas')
+            const context = canvas.getContext('2d');
+
+            context.drawImage(
+                video, 0, 0,
+                video.videoHeight,
+                video.videoWidth
+            )
+
+            return canvas.toDataURL().split(',')[1];
+        }
+
+        const createMeme = async (imgData, text) => {
+            const r = await fetch(
+                'https://laicalf.freedomains.dev/p9/api/createMeme', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imgData,
+                        text
+                    })
+                }
+            )
+
+            const meme = await r.json()
+
+            return meme
+        }
+
+        const inputEnterHandler = (e) => e.key === 'Enter' && createMeme(getImageEncodedData(video), e.target.value);
+
+        const getAllMemes = async () => {
+            const r = await fetch('https://laicalf.freedomains.dev/p9/api/memes');
+            const imagesUrls = await r.json();
+
+            return imagesUrls
+        }
+
+        const createUsersMeme = (memeUrl) => {
+            const meme = document.createElement('div');
+            meme.classList.add('meme');
+
+            const img = document.createElement('img');
+            img.src = memeUrl + `?time=${Date.now()}`
+            img.alt = 'Meme';
+
+            meme.appendChild(img);
+
+            return meme;
+        }
+
+        const imagesLoaded = (images, loaded = 0, i = 0) => {
+            if (loaded === images.length) return true;
+
+            if (i >= images.length) return false;
+
+            if (images[i].complete) loaded += 1;
+
+            return imagesLoaded(images, loaded, i + 1);
+        }
+
+        const removePreviousMemes = () => memesContainer.querySelector('.allMemes').remove();
+
+        const instantUpdate = (el, i = 0) => {
+            if (imagesLoaded(el.querySelectorAll('img'))) {
+                memesContainer.querySelectorAll('.allMemes').length > 1  && removePreviousMemes();
+                memesContainer.querySelector('.allMemes').style.visibility = 'visible';
+                return;
+            }
+
+            setTimeout(() => instantUpdate(el, i + 1), 2000)
+        }
+
+        const setMemes = async () => {
+            const memes = await getAllMemes();
+
+            const allMemesElement = createAllMemesContainer(memes);
+            memesContainer.appendChild(allMemesElement);
+
+            instantUpdate(allMemesElement)
+        }
+
+        const realTimeMemesUpdate = () => {
+            setMemes();
+
+            setTimeout(realTimeMemesUpdate, 6000);
+        }
+
+        const memeChat = () => {
+            realTimeMemesUpdate();
+            startRecording();
+        }
+
+        memeChat();
+    </script>
+</body>
+
+</html>

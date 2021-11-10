@@ -144,7 +144,7 @@
 
             upload.disabled = false
 
-            // x-axis coordinate is hardcoded (-70). Suggestions are welcomed.
+            // x-axis coordinate is hardcoded (-80). Any suggestions?
             context.drawImage(video, -80, 0, canvas.width, canvas.height);
         }
 
@@ -166,7 +166,6 @@
 
         const setUsersImgs = async () => (await getUsersImages()).forEach(imgUrl => usersImages.append(createOtherUsersImg(imgUrl)));
 
-        // Compose here?
         const selfieQueen = () => {
             disableUploadButton()
             setUsersImgs()

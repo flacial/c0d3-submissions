@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fascinate&family=Rubik&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://laicalf.freedomains.dev/cdn/p9-login.css">
+    <title>Meme Chat | Login</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <h1>Login</h1>
+        <div class="inputCont">
+            <img src="https://laicalf.freedomains.dev/cdn/doge-icon.svg" alt="Doge">
+            <input type="text" placeholder="Ghostface">
+        </div>
+    </div>
+    <script>
+        const input = document.querySelector('input');
+
+        const redirectToMemechat = r => !r.url.includes('login') && (window.location.href = r.url)
+
+        const login = (username) => fetch(
+            'https://laicalf.freedomains.dev/p9/api/login', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username
+                }),
+            }
+        ).then(redirectToMemechat)
+
+        const inputEnterHandler = (e) => e.key === 'Enter' && login(e.target.value);
+
+        input.addEventListener('keydown', inputEnterHandler)
+    </script>
+</body>
+
+</html>
