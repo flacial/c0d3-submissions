@@ -1,6 +1,7 @@
 import express from 'express';
 import session from 'express-session';
 import Utils from './utils/utils.js';
+import cdnRouter from './routes/cdn.js';
 import p1Router from './routes/p1.js';
 import p2Router from './routes/p2.js';
 import p3Router from './routes/p3.js';
@@ -9,7 +10,7 @@ import p5Router from './routes/p5.js';
 import p6Router from './routes/p6.js';
 import p7Router from './routes/p7.js';
 import p8Router from './routes/p8.js';
-import cdnRouter from './routes/cdn.js';
+import p9Router from './routes/p9.js';
 
 const app = express();
 
@@ -43,5 +44,6 @@ app.use('/p5', p5Router);
 app.use('/auth', p6Router);
 app.use('/p7', p7Router);
 app.use('/p8', p8Router);
+app.use('/p9', p9Router);
 
 export default app;
