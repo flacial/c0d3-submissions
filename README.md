@@ -11,3 +11,4 @@ C0d3 Submissions
 - p6 Authentication: `Non-Client`
 - p7 Image Text Extraction: `/p7`
 - p8 Selfie Queen: `/p8`
+- p9 Meme chat: `/p9/memechat`
