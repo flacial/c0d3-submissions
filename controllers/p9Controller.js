@@ -8,7 +8,7 @@ const readAllMemes = () => fsP.readdir('public/p9-memes');
 
 const createMeme = async (text, buffer) => {
   try {
-    const font = await Jimp.loadFont(Jimp.FONT_SANS_16_WHITE);
+    const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
     const image = await Jimp.read(buffer);
     const { height, width } = image.bitmap;
 

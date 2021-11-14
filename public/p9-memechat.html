@@ -38,6 +38,11 @@
             allMemes.classList.add('allMemes');
 
             memes.forEach(memeUrl => allMemes.appendChild(createUsersMeme(memeUrl)));
+            
+            const spacer = document.createElement('div');
+            spacer.classList.add('spacer')
+
+            allMemes.append(spacer)
 
             return allMemes;
         }
@@ -66,12 +71,15 @@
 
         const getImageEncodedData = (video) => {
             const canvas = document.createElement('canvas')
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+
             const context = canvas.getContext('2d');
 
             context.drawImage(
                 video, 0, 0,
-                video.videoHeight,
-                video.videoWidth
+                canvas.width,
+                canvas.height
             )
 
             return canvas.toDataURL().split(',')[1];
