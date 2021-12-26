@@ -1,32 +1,35 @@
-import Storage from '../utils/storage.js';
-import Utils from '../utils/utils.js';
-import { verifyToken } from './p6Controller.js';
+import Storage from "../utils/storage.js";
+import Utils from "../utils/utils.js";
+import { verifyToken } from "./authentication-controller.js";
 
 class Chatroom {
   #rooms;
 
   constructor() {
-    this.#rooms = new Storage('store', 'chatroom', 'json');
+    this.#rooms = new Storage("store", "chatroom", "json");
   }
 
   handleUser = async (req, res, next) => {
     try {
-      const auth = req.get('authorization');
-      const token = auth && auth.split(' ')[1];
-      if (!token) return res.status(400).json({ error: { message: 'Access Denied' } });
+      const auth = req.get("authorization");
+      const token = auth && auth.split(" ")[1];
+      if (!token)
+        return res.status(400).json({ error: { message: "Access Denied" } });
 
       const user = await verifyToken(token);
       req.user = user;
 
       return next();
     } catch (err) {
-      return res.status(403).send({ error: { message: 'User is not authenticated' } });
+      return res
+        .status(403)
+        .send({ error: { message: "User is not authenticated" } });
     }
   };
 
   handleHome = (_req, res) => {
-    res.set('cache-control', 'max-age=3000');
-    return res.sendFile(Utils.filePath('p5.html'));
+    res.set("cache-control", "max-age=3000");
+    return res.sendFile(Utils.filePath("p5.html"));
   };
 
   handleSession = (req, res) => res.json({ ...req.user });
@@ -37,7 +40,7 @@ class Chatroom {
 
       this.#rooms.modify(room, (value) => {
         if (value) return [...value, { owner, content }];
-        throw new Error('Room not created');
+        throw new Error("Room not created");
       });
     } catch (e) {
       throw new Error("Couldn't add message");
@@ -51,15 +54,17 @@ class Chatroom {
       const { content } = req.body;
       const { username: owner } = req.user;
 
-      if (!content) { return res.status(400).json({ error: { message: 'Content missing' } }); }
+      if (!content) {
+        return res.status(400).json({ error: { message: "Content missing" } });
+      }
 
       this.#addMessage(content, room, owner);
 
-      return res.status(201).json({ message: 'Message added successfully' });
+      return res.status(201).json({ message: "Message added successfully" });
     } catch (e) {
       return res
         .status(500)
-        .json({ error: { message: 'Error adding the message.' } });
+        .json({ error: { message: "Error adding the message." } });
     }
   };
 
