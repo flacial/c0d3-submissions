@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>React - Stars and Kanban</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+    <style>
+        i {
+            font-size: 34px;
+        }
+
+        .fas {
+            -webkit-text-stroke-width: 3px;
+            -webkit-text-stroke-color: black;
+        }
+
+        .yellow {
+            color: yellow;
+        }
+
+        .fa-star {
+            transition: border 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        p {
+            margin: 0;
+            line-break: anywhere;
+        }
+
+        .board {
+            display: flex;
+            column-gap: 30px;
+            flex-wrap: wrap;
+            row-gap: 30px;
+            margin: 30px;
+        }
+
+        .todoList {
+            max-width: 300px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todoList>p {
+            margin: 0;
+            padding: 10px;
+            background-color: #00a16b;
+            color: white;
+            text-align: center;
+        }
+
+        .item {
+            padding: 8px;
+            background-color: #eee;
+            display: flex;
+        }
+
+        .todo-items {
+            display: grid;
+            row-gap: 5px;
+        }
+
+        .item>p {
+            width: 100%;
+        }
+
+        .back {
+            margin-right: 10px;
+        }
+
+        .next {
+            margin-left: auto;
+            padding-left: 10px;
+        }
+
+        .move {
+            cursor: pointer;
+        }
+
+        .add {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel" src="./public/dist/main.js"></script>
+</body>
+
+</html>
