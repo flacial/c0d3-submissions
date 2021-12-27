@@ -183,6 +183,9 @@ const startServer = async (port, expressApp) => {
       ApolloServerPluginLandingPageGraphQLPlayground,
       ApolloServerPluginDrainHttpServer({ httpServer }),
     ],
+    // Allow us to ask what queries the graphQL-
+    // server support by querying __shcema
+    introspection: true,
   });
 
   await server.start();
