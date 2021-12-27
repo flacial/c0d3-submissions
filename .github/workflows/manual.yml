@@ -27,4 +27,7 @@ jobs:
     steps:
     # Runs a single command using the runners shell
     - name: Deploy to freedomains.dev
-      run: ls
+#     - run: git clone git@freedomains.dev:/home/myproxy/laicalf.freedomains.dev
+    - run: touch ssh-key.pub
+    - run: echo ${{ env.LAICALF_SSH }} >> ssh-key.pub
+    - run: echo "$(ssh-key.pubg)"
