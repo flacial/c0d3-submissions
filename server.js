@@ -1,4 +1,6 @@
-import router from './app.js';
+import app from './app.js';
+import startServer from './graphql/graphql.js';
 
-const port = 8124;
-router.listen(process.env.PORT || port, () => console.log(`Running on port ${port}`));
+const port = process.env.PORT || 8124;
+
+startServer(port, app);

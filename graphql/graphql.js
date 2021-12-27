@@ -7,9 +7,10 @@ import express from 'express';
 import http from 'http';
 import fetch from 'node-fetch';
 import session from 'express-session';
-import Storage from './storage.js';
+import Storage from '../utils/storage.js';
 
-const usersStorage = new Storage('./', 'users', 'json');
+const usersStorage = new Storage('./store', 'users', 'json');
+
 const typeDefs = gql`
   type Query {
     lessons: [Lesson]
@@ -25,8 +26,7 @@ const typeDefs = gql`
   }
 
   type Lesson {
-    name: String!
-    image: String!
+    title: String!
   }
 
   type User {
@@ -36,20 +36,21 @@ const typeDefs = gql`
   }
 
   type BasicPokemon {
-    name: String
+    name: String!
   }
 
   type Pokemon {
-    name: String
-    image: String
+    name: String!
+    image: String!
   }
 `;
+
 const lessons = async () => {
   const req = await fetch('https://www.c0d3.com/api/lessons');
 
   const lessons = await req.json();
 
-  // return lessons;
+  return lessons;
 };
 
 const search = async (parent, args) => {
@@ -96,9 +97,7 @@ const enroll = async (parent, args, { session }) => {
     (userLesson) => userLesson.title === args.title,
   );
 
-  if (!userLessonsExist) {
-    await usersStorage.add(session.user.name, []);
-  }
+  if (!userLessonsExist) await usersStorage.add(session.user.name, []);
 
   if (!lessonExists) {
     await usersStorage.modify(session.user.name, (prevUserLessons) => [
@@ -127,6 +126,7 @@ const unenroll = async (parent, args, { session }) => {
         userLessons.findIndex((userLesson) => userLesson.title === args.title),
         1,
       );
+
       return userLessons;
     });
   }
@@ -159,9 +159,9 @@ const corsConfig = {
 
 const context = ({ req }) => ({ session: req.session });
 
-const app = express();
+const initialApp = express();
 
-app.use(
+initialApp.use(
   session({
     secret: "dont read, it's a secret.",
     resave: false,
@@ -171,20 +171,24 @@ app.use(
   }),
 );
 
-const httpServer = http.createServer(app);
+const startServer = async (port, expressApp) => {
+  const app = expressApp || initialApp;
+  const httpServer = http.createServer(app);
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context,
-  plugins: [
-    ApolloServerPluginLandingPageGraphQLPlayground,
-    ApolloServerPluginDrainHttpServer({ httpServer }),
-  ],
-});
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context,
+    plugins: [
+      ApolloServerPluginLandingPageGraphQLPlayground,
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+    ],
+  });
 
-await server.start();
-server.applyMiddleware({ app, cors: corsConfig });
+  await server.start();
+  server.applyMiddleware({ app, cors: corsConfig });
 
-const port = process.env.PORT || 8123;
-httpServer.listen({ port });
+  httpServer.listen({ port });
+};
+
+export default startServer;

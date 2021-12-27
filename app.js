@@ -1,7 +1,7 @@
 import express from 'express';
 import session from 'express-session';
 import Utils from './utils/utils.js';
-import cdnRouter from './routes/cdn.js';
+// import cdnRouter from './routes/cdn.js';
 import ipGeolocation from './routes/ipGeolocation.js';
 import commands from './routes/commands.js';
 import memegen from './routes/memegen.js';
@@ -49,7 +49,7 @@ app.use('/p9', memeChat);
 
 app.use('/js6', js6Router);
 
-// Allow the ability to link static content to HTML file
+// Allow the ability to link JS files to JS6 HTML files
 app.use('/js6Static', express.static('js6'));
 
 export default app;
