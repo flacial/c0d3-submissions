@@ -25,8 +25,7 @@ const typeDefs = gql`
   }
 
   type Lesson {
-    name: String!
-    image: String!
+    title: String!
   }
 
   type User {
@@ -49,7 +48,7 @@ const lessons = async () => {
 
   const lessons = await req.json();
 
-  // return lessons;
+  return lessons;
 };
 
 const search = async (parent, args) => {
