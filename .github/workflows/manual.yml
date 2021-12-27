@@ -32,4 +32,4 @@ jobs:
     - name: copy ssh to the file
       run: echo ${{ secrets.LAICALF_SSH }} >> ssh-key.pub
     - name: echo ssh content
-      run: echo "$(ssh-key.pubg)"
+      run: echo "$(ssh-key.pub)"
