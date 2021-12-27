@@ -26,8 +26,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Runs a single command using the runners shell
-    - name: Deploy to freedomains.dev
+    - name: create ssh file
 #     - run: git clone git@freedomains.dev:/home/myproxy/laicalf.freedomains.dev
-    - run: touch ssh-key.pub
-    - run: echo ${{ secrets.LAICALF_SSH }} >> ssh-key.pub
-    - run: echo "$(ssh-key.pubg)"
+      run: touch ssh-key.pub
+    - name: copy ssh to the file
+      run: echo ${{ secrets.LAICALF_SSH }} >> ssh-key.pub
+    - name: echo ssh content
+      run: echo "$(ssh-key.pubg)"
