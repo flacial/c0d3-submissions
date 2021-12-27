@@ -29,5 +29,5 @@ jobs:
     - name: Deploy to freedomains.dev
 #     - run: git clone git@freedomains.dev:/home/myproxy/laicalf.freedomains.dev
     - run: touch ssh-key.pub
-    - run: echo ${{ env.LAICALF_SSH }} >> ssh-key.pub
+    - run: echo ${{ secrets.LAICALF_SSH }} >> ssh-key.pub
     - run: echo "$(ssh-key.pubg)"
