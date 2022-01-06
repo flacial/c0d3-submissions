@@ -24,12 +24,17 @@
         h4 {
             cursor: pointer;
         }
+
+        /* fix column container glitch caused by its limited height when adding elements */
+        .lessonsContainer {
+            display: flex;
+        }
     </style>
 </head>
 
 <body>
     <div id="root"></div>
-    <script src="./public/dist/main.js"></script>
+    <script src="/js6Static/webpack-pokemon-classes/main.js"></script>
 </body>
 
 </html>
