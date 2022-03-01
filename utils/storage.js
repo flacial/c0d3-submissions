@@ -1,77 +1,89 @@
-/* eslint-disable no-prototype-builtins */
 import fs from 'fs';
 
 const fsAsync = fs.promises;
 
 class Storage {
-    #folder;
+  #folder
 
-    #fileName;
+  #fileName
 
-    #ext;
+  #ext
 
-    #path;
+  #path
 
-    #storage;
+  #storage
 
-    constructor(folder, fileName, ext) {
-      this.#folder = folder;
-      this.#fileName = fileName;
-      this.#ext = ext;
-      this.#path = `${folder}/${fileName}.${ext}`;
-      this.#storage = this.#initStorage();
+  constructor(folder, fileName, ext) {
+    this.#folder = folder
+    this.#fileName = fileName
+    this.#ext = ext
+    this.#path = `${folder}/${fileName}.${ext}`
+    this.#storage = this.#initStorage()
+  }
+
+  #initStorage = async () => {
+    try {
+      if (!fs.existsSync(this.#folder)) await fsAsync.mkdir(this.#folder)
+
+      if (!fs.existsSync(this.#path)) await fsAsync.writeFile(this.#path, '{}')
+
+      const storeData = await fsAsync.readFile(this.#path, 'utf-8')
+
+      return JSON.parse(storeData || '{}')
+    } catch (err) {
+      throw new Error(err, 1)
     }
+  }
 
-    #initStorage = async () => {
-      try {
-        if (!fs.existsSync(this.#folder)) await fsAsync.mkdir(this.#folder);
+  updateStorage = async () => {
+    const s = await this.#storage
+    await fsAsync.writeFile(this.#path, JSON.stringify(s)).catch(err => {
+      throw new Error(err)
+    })
+    return this
+  }
 
-        if (!fs.existsSync(this.#path)) await fsAsync.writeFile(this.#path, '{}');
+  add = async (key, value) => {
+    const s = await this.#storage
+    s[key] = value
+    this.updateStorage()
+    return this
+  }
 
-        const storeData = await fsAsync.readFile(this.#path, 'utf-8');
+  modify = async (key, fn) => {
+    const s = await this.#storage
+    s[key] = fn(s[key])
+    this.updateStorage()
+    return this
+  }
 
-        return JSON.parse(storeData || '{}');
-      } catch (err) {
-        throw new Error(err, 1);
-      }
-    }
+  getValue = async key => {
+    const s = await this.#storage
+    return s[key]
+  }
 
-    updateStorage = async () => {
-      const s = await this.#storage;
-      await fsAsync.writeFile(this.#path, JSON.stringify(s))
-        .catch((err) => { throw new Error(err); });
-      return this;
-    }
+  has = async key => {
+    const s = await this.#storage
+    return s.hasOwnProperty(key)
+  }
 
-    add = async (key, value) => {
-      const s = await this.#storage;
-      s[key] = value;
-      this.updateStorage();
-      return this;
-    }
+  some = async fn => {
+    const s = await this.#storage
 
-    modify = async (key, fn) => {
-      const s = await this.#storage;
-      s[key] = fn(s[key]);
-      this.updateStorage();
-      return this;
-    }
+    return Object.entries(s).some(fn)
+  }
 
-    getValue = async (key) => {
-      const s = await this.#storage;
-      return s[key];
-    }
+  toArrayByKeys = async () => {
+    const s = await this.#storage
 
-    has = async (key) => {
-      const s = await this.#storage;
-      return s.hasOwnProperty(key);
-    }
+    return Object.keys(s)
+  }
 
-    some = async (fn) => {
-      const s = await this.#storage;
+  toArrayByValues = async () => {
+    const s = await this.#storage
 
-      return Object.entries(s).some(fn);
-    }
+    return Object.values(s)
+  }
 }
 
 export default Storage;
